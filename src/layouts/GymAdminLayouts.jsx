@@ -1,80 +1,96 @@
 import { NavLink, Outlet } from "react-router-dom";
+import {
+  LayoutDashboard,
+  FileText,
+  Layers,
+  Users,
+  UserCheck,
+  UserX,
+  CreditCard,
+  Receipt,
+  Building,
+  Palette,
+  Globe,
+  LifeBuoy,
+} from "lucide-react";
+import Header from "./Header";
+import { useEffect } from "react";
+import api from "../services/api";
 
 const Menu = [
-  { title: "Dashboard", path: "/gym/dashboard" },
+  { title: "Dashboard", path: "/gym/dashboard", icon: LayoutDashboard },
 
-  {
-    title: "Website",
-    children: [
-      { title: "Pages", path: "/gym/pages" },
-      { title: "Templates", path: "/gym/templates" },
-    ],
-  },
-  {
-    title: "Members",
-    children: [
-      { title: "All Members", path: "/gym/members" },
-      { title: "Active", path: "/gym/members/active" },
-      { title: "Inactive", path: "/gym/members/inactive" },
-    ],
-  },
-  {
-    title: "Payments",
-    children: [
-      { title: "Plans", path: "/gym/payments/plans" },
-      { title: "Transactions", path: "/gym/payments/transactions" },
-    ],
-  },
-  {
-    title: "Settings",
-    children: [
-      { title: "Gym Profile", path: "/gym/settings/profile" },
-      { title: "Branding", path: "/gym/settings/branding" },
-      { title: "Domain", path: "/gym/settings/domain" },
-    ],
-  },
-  {
-    title: "Support",
-    children: [{ title: "Tickets", path: "/gym/support/tickets" }],
-  },
+  { title: "Pages", path: "/gym/pages", icon: FileText },
+  { title: "Templates", path: "/gym/templates", icon: Layers },
+
+  { title: "All Members", path: "/gym/members", icon: Users },
+  { title: "Active Members", path: "/gym/members/active", icon: UserCheck },
+  { title: "Inactive Members", path: "/gym/members/inactive", icon: UserX },
+
+  { title: "Plans", path: "/gym/payments/plans", icon: CreditCard },
+  { title: "Transactions", path: "/gym/payments/transactions", icon: Receipt },
+
+  { title: "Gym Profile", path: "/gym/settings/profile", icon: Building },
+  { title: "Branding", path: "/gym/settings/branding", icon: Palette },
+  { title: "Domain", path: "/gym/settings/domain", icon: Globe },
+
+  { title: "Tickets", path: "/gym/support/tickets", icon: LifeBuoy },
 ];
 
 const GymAdminLayout = () => {
+
+  useEffect(() => {
+  api.get("/gym/settings/get.php").then(res => {
+    const gym = res.data.data;
+
+    localStorage.setItem("primary_color", gym.primary_color);
+    localStorage.setItem("secondary_color", gym.secondary_color);
+
+    document.documentElement.style.setProperty(
+      "--brand-primary",
+      gym.primary_color
+    );
+  });
+}, []);
+
+
   return (
-    <div style={{ display: "flex", minHeight: "100vh" }}>
+    <div className="flex min-h-screen bg-gray-100">
       {/* SIDEBAR */}
-      <aside style={{ width: 260, background: "#111", color: "#fff", padding: 15 }}>
-        <h3>Gym Panel</h3>
+      <aside className="w-64 bg-[#1f2937] text-white p-5">
+        <h2 className="text-xl font-bold mb-6">Gym Panel</h2>
 
-        {Menu.map((item) => (
-          <div key={item.title} style={{ marginBottom: 10 }}>
-            <strong>{item.title}</strong>
+        <nav className="space-y-1">
+          {Menu.map((item) => {
+            const Icon = item.icon;
 
-            {item.children && (
-              <ul style={{ paddingLeft: 15 }}>
-                {item.children.map((sub) => (
-                  <li key={sub.path}>
-                    <NavLink
-                      to={sub.path}
-                      style={({ isActive }) => ({
-                        color: isActive ? "#fff" : "#aaa",
-                        textDecoration: "none",
-                      })}
-                    >
-                      {sub.title}
-                    </NavLink>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-        ))}
+            return (
+              <NavLink
+                key={item.path}
+                to={item.path}
+                className={({ isActive }) =>
+                  `flex items-center gap-3 px-4 py-2 rounded text-sm transition
+                  ${isActive
+                    ? "bg-brand text-white"
+                    : "text-gray-300 hover:bg-gray-700 hover:text-white"
+                  }`
+                }
+              >
+                <Icon size={18} />
+                <span>{item.title}</span>
+              </NavLink>
+            );
+          })}
+        </nav>
       </aside>
 
-      {/* CONTENT */}
-      <main style={{ flex: 1, padding: 20 }}>
-        <Outlet />
-      </main>
+      {/* MAIN CONTENT */}
+      <div className="flex-1 flex flex-col">
+        <Header />
+        <main className="p-6">
+          <Outlet />
+        </main>
+      </div>
     </div>
   );
 };

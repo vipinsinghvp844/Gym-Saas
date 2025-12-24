@@ -7,7 +7,7 @@ const ProtectedRoute = ({ children, role }) => {
 
   // ❌ Not logged in
   if (!token) {
-    return <Navigate to="/login" />;
+    return <Navigate to="/" />;
   }
 
   // 🔐 FORCE PASSWORD CHANGE (but allow change-password page)

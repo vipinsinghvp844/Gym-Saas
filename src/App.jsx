@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-
+import "tailwindcss";
 import Login from "./pages/Login";
 
 /* =======================
@@ -21,6 +21,7 @@ import CreateTemplate from "./pages/superadmin/CreateTemplate";
 import GymDashboard from "./pages/gymadmin/Dashboard";
 import GymPages from "./pages/gymadmin/pages";
 import EditGymPage from "./pages/gymadmin/pages/EditPage";
+import GymProfile from "../src/pages/gymadmin/settings/Profile"
 
 /* =======================
    LAYOUTS & AUTH
@@ -94,6 +95,7 @@ function App() {
           <Route path="dashboard" element={<GymDashboard />} />
           <Route path="pages" element={<GymPages />} />
           <Route path="pages/edit/:id" element={<EditGymPage />} />
+          <Route path="setting/profile" element={<GymProfile/>}/>
         </Route>
 
         {/* =======================
