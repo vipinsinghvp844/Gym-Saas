@@ -2,19 +2,15 @@ import { useState, useRef, useEffect } from "react";
 import { LogOut, Key, User } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { logout } from "../utils/auth";
+import useAuthUser from "../hooks/useAuthUser";
+import avatarPlaceholder from "../assets/react.svg";
 
 const ProfileDropdown = () => {
   const [open, setOpen] = useState(false);
-  const ref = useRef();
+  const ref = useRef(null);
   const navigate = useNavigate();
 
-  const name = localStorage.getItem("user_name") || "User";
-  const role = localStorage.getItem("role") || "admin";
-  const avatar = localStorage.getItem("user_avatar");
-
-  const avatarUrl = avatar
-    ? `http://localhost/GymsBackend${avatar}`
-    : null;
+  const { user, loading } = useAuthUser();
 
   // close on outside click
   useEffect(() => {
@@ -27,61 +23,50 @@ const ProfileDropdown = () => {
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
+  if (loading || !user) return null;
+
+  const profileImage = user.profile_image
+  ? `http://localhost/GymsBackend${user.profile_image}`
+  : avatarPlaceholder;
+
   return (
     <div className="relative" ref={ref}>
-      {/* HEADER AVATAR */}
+      {/* AVATAR */}
       <button
         onClick={() => setOpen(!open)}
-        className="w-9 h-9 rounded-full overflow-hidden
-        border border-slate-600 bg-slate-800 flex items-center justify-center"
+        className="w-9 h-9 rounded-full overflow-hidden border border-slate-600"
       >
-        {avatarUrl ? (
+        {profileImage ? (
           <img
-            src={avatarUrl}
+            src={profileImage}
             alt="User"
             className="w-full h-full object-cover"
-            onError={(e) => {
-              e.target.onerror = null;
-              e.target.src = "";
-            }}
           />
         ) : (
-          <span className="text-white text-sm font-semibold">
-            {name.charAt(0).toUpperCase()}
-          </span>
+          <User className="w-full h-full p-2 text-white" />
         )}
       </button>
 
       {/* DROPDOWN */}
       {open && (
-        <div
-          className="
-            absolute right-0 mt-3 w-56 rounded-lg shadow-xl
-            bg-slate-900 text-white
-            border border-slate-700
-          "
-        >
+        <div className="absolute right-0 mt-3 w-56 rounded-lg shadow-lg bg-slate-900 text-white border border-slate-700">
           {/* USER INFO */}
           <div className="flex items-center gap-3 px-4 py-3 border-b border-slate-700">
-            <div className="w-10 h-10 rounded-full overflow-hidden bg-slate-700 flex items-center justify-center">
-              {avatarUrl ? (
+            <div className="w-10 h-10 rounded-full overflow-hidden bg-slate-700">
+              {profileImage ? (
                 <img
-                  src={avatarUrl}
+                  src={profileImage}
                   alt="User"
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <User className="w-5 h-5 text-white" />
+                <User className="w-full h-full p-2" />
               )}
             </div>
 
             <div>
-              <p className="text-sm font-semibold text-white">
-                {name}
-              </p>
-              <p className="text-xs text-slate-400 capitalize">
-                {role.replace("_", " ")}
-              </p>
+              <p className="text-sm font-semibold">{user.name}</p>
+              <p className="text-xs text-slate-400">{user.role}</p>
             </div>
           </div>
 
@@ -91,16 +76,14 @@ const ProfileDropdown = () => {
               navigate("/change-password");
               setOpen(false);
             }}
-            className="flex items-center gap-2 w-full px-4 py-3 text-sm
-              hover:bg-slate-800"
+            className="flex items-center gap-2 w-full px-4 py-3 text-sm hover:bg-slate-800"
           >
             <Key size={16} /> Change Password
           </button>
 
           <button
             onClick={logout}
-            className="flex items-center gap-2 w-full px-4 py-3 text-sm
-              text-red-400 hover:bg-slate-800"
+            className="flex items-center gap-2 w-full px-4 py-3 text-sm text-red-400 hover:bg-slate-800"
           >
             <LogOut size={16} /> Logout
           </button>
