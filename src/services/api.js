@@ -1,7 +1,11 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "http://localhost/GymsBackend",
+  baseURL: "https://hireaiexpert.com/saas-backend",
+  headers: {
+    "Content-Type": "application/json",
+    Accept: "application/json",
+  },
 });
 
 // 🔐 Attach token to every request
