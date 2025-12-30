@@ -2,6 +2,7 @@ import axios from "axios";
 
 const api = axios.create({
   baseURL: "https://hireaiexpert.com/saas-backend",
+  // baseURL: "http://localhost/GymsBackend",
   headers: {
     "Content-Type": "application/json",
     Accept: "application/json",

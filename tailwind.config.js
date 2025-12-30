@@ -6,7 +6,11 @@ export default {
     "./src/**/*.{js,jsx}",
   ],
   theme: {
-    extend: {},
+    extend: {
+      animation: {
+        "spin-slow": "spin 2s linear infinite",
+      },
+    },
   },
   plugins: [],
 };

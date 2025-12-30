@@ -36,6 +36,7 @@ import GymAdminLayout from "./layouts/GymAdminLayouts";
 ======================= */
 import PageRenderer from "./website/PageRenderer";
 import GymPageRenderer from "./website/GymPageRenderer";
+import SuperAdminProfile from "./pages/superadmin/settings/profile";
 
 function App() {
   return (
@@ -79,6 +80,7 @@ function App() {
           <Route path="pages" element={<Pages />} />
           <Route path="create-page" element={<CreatePage />} />
           <Route path="pages/edit/:id" element={<EditPage />} />
+          <Route path="setting/profile" element={<SuperAdminProfile />} />
         </Route>
 
         {/* =======================
