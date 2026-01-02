@@ -1,4 +1,4 @@
-import GymAdminLayouts from "../../../layouts/GymAdminLayouts";
+import GymAdminLayouts from "../../../layouts/GymAdminLayout";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import api from "../../../services/api";

@@ -1,11 +1,26 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Outlet } from "react-router-dom";
+import api from "../services/api";
 import Header from "./Header";
-import Sidebar from "../layouts/Sidebar";
-import superAdminMenu from "../layouts/superAdminMenu";
+import Sidebar from "./Sidebar";
+import gymAdminMenu from "./gymAdminMenu";
 
-const SuperAdminLayout = () => {
+const GymAdminLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  useEffect(() => {
+    api.get("/gym/settings/get.php").then((res) => {
+      const gym = res.data.data;
+
+      localStorage.setItem("primary_color", gym.primary_color);
+      localStorage.setItem("secondary_color", gym.secondary_color);
+
+      document.documentElement.style.setProperty(
+        "--brand-primary",
+        gym.primary_color
+      );
+    });
+  }, []);
 
   return (
     <div className="flex min-h-screen bg-gray-100">
@@ -20,16 +35,17 @@ const SuperAdminLayout = () => {
 
       {/* SIDEBAR */}
       <Sidebar
-        title="Super Admin"
-        menu={superAdminMenu}
+        title="Gym Panel"
+        menu={gymAdminMenu}
         isOpen={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
+        activeClass="bg-brand"
+        baseBg="bg-[#1f2937]"
       />
 
-      {/* MAIN CONTENT */}
+      {/* MAIN */}
       <div className="flex-1 flex flex-col">
         <Header onMenuClick={() => setSidebarOpen(true)} />
-
         <main className="p-6">
           <Outlet />
         </main>
@@ -38,4 +54,4 @@ const SuperAdminLayout = () => {
   );
 };
 
-export default SuperAdminLayout;
+export default GymAdminLayout;

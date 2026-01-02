@@ -29,7 +29,7 @@ import GymProfile from "../src/pages/gymadmin/settings/Profile"
 import ProtectedRoute from "./components/ProtectedRoute";
 import ChangePassword from "./pages/ChangePassword";
 import SuperAdminLayout from "./layouts/SuperAdminLayout";
-import GymAdminLayout from "./layouts/GymAdminLayouts";
+import GymAdminLayout from "./layouts/GymAdminLayout";
 
 /* =======================
    PUBLIC WEBSITE

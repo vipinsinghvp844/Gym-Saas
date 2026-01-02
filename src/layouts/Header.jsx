@@ -13,7 +13,7 @@ import { applyTheme } from "../utils/theme";
 import ProfileDropdown from "../components/ProfileDropdown";
 import { Link } from "react-router-dom";
 
-const Header = () => {
+const Header = ({ onMenuClick }) => {
   const [open, setOpen] = useState(false);
   const [theme, setTheme] = useState(
     localStorage.getItem("theme") || "light"
@@ -44,6 +44,13 @@ const Header = () => {
         bg-gray-100 dark:bg-slate-800 
         px-3 py-2 rounded
       ">
+        <button
+  onClick={onMenuClick}
+  className="lg:hidden text-gray-400"
+>
+  ☰
+</button>
+
         <Search size={16} className="text-gray-400" />
         <input
           placeholder="Search..."
