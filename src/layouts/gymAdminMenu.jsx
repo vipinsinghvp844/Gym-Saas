@@ -1,36 +1,48 @@
 import {
   LayoutDashboard,
-  FileText,
-  Layers,
   Users,
   UserCheck,
   UserX,
+  Calendar,
   CreditCard,
-  Receipt,
-  Building,
-  Palette,
-  Globe,
-  LifeBuoy,
+  ClipboardList,
+  Dumbbell,
+  Activity,
+  Package,
+  MessageSquare,
+  Settings,
+  Layers,
 } from "lucide-react";
 
 const gymAdminMenu = [
-  { title: "Dashboard", path: "/gym/dashboard", icon: LayoutDashboard },
-
-  { title: "Pages", path: "/gym/pages", icon: FileText },
-  { title: "Templates", path: "/gym/templates", icon: Layers },
-
-  { title: "All Members", path: "/gym/members", icon: Users },
-  { title: "Active Members", path: "/gym/members/active", icon: UserCheck },
-  { title: "Inactive Members", path: "/gym/members/inactive", icon: UserX },
-
-  { title: "Plans", path: "/gym/payments/plans", icon: CreditCard },
-  { title: "Transactions", path: "/gym/payments/transactions", icon: Receipt },
-
-  { title: "Gym Profile", path: "/gym/settings/profile", icon: Building },
-  { title: "Branding", path: "/gym/settings/branding", icon: Palette },
-  { title: "Domain", path: "/gym/settings/domain", icon: Globe },
-
-  { title: "Tickets", path: "/gym/support/tickets", icon: LifeBuoy },
+  {
+    section: "Home",
+    items: [
+      { title: "Dashboard", path: "/gym/dashboard", icon: LayoutDashboard },
+    ],
+  },
+  {
+    section: "Business Management",
+    items: [
+      { title: "Trainers", path: "/gym/trainers", icon: UserCheck },
+      { title: "Trainees", path: "/gym/trainees", icon: Users },
+      { title: "Classes", path: "/gym/classes", icon: Calendar },
+      { title: "Membership", path: "/gym/memberships", icon: ClipboardList },
+      { title: "Workouts", path: "/gym/workouts", icon: Dumbbell },
+      { title: "Attendance", path: "/gym/attendance", icon: Activity },
+      { title: "Finance", path: "/gym/finance", icon: CreditCard },
+      { title: "Product Management", path: "/gym/products", icon: Package },
+      { title: "Notice Board", path: "/gym/notices", icon: MessageSquare },
+    ],
+  },
+  {
+    section: "System Configuration",
+    items: [
+      { title: "Pages", path: "/gym/pages", icon: Layers },
+      { title: "Templates", path: "/gym/templates", icon: Layers },
+      { title: "Settings", path: "/gym/settings/profile", icon: Settings },
+    ],
+  },
 ];
 
 export default gymAdminMenu;

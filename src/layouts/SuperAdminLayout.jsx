@@ -8,7 +8,7 @@ const SuperAdminLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-    <div className="flex min-h-screen bg-gray-100">
+    <div className="flex h-screen bg-gray-100 overflow-hidden">
 
       {/* OVERLAY (mobile only) */}
       {sidebarOpen && (
@@ -27,10 +27,10 @@ const SuperAdminLayout = () => {
       />
 
       {/* MAIN CONTENT */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex flex-col flex-1 overflow-hidden">
         <Header onMenuClick={() => setSidebarOpen(true)} />
 
-        <main className="p-6">
+        <main className="flex-1 overflow-y-auto bg-[#f3f6f9]">
           <Outlet />
         </main>
       </div>

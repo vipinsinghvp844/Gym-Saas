@@ -1,50 +1,22 @@
-import React, { useState } from "react";
+import { useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import api from "../services/api";
+import { loginUser } from "../../redux/actions/authAction";
 import { Eye, EyeOff } from "lucide-react";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
+
+  const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const handleLogin = async (e) => {
+  const { loading, error } = useSelector((state) => state.auth);
+
+  const handleLogin = (e) => {
     e.preventDefault();
-    setLoading(true);
-
-    try {
-      const res = await api.post("/auth/login.php", { email, password });
-
-      if (res.data.status) {
-        const { token, user } = res.data;
-
-        localStorage.setItem("token", token);
-        localStorage.setItem("role", user.role);
-        localStorage.setItem(
-          "force_password_change",
-          user.force_password_change
-        );
-
-        if (user.role === "gym_admin" && user.force_password_change === 1) {
-          navigate("/change-password");
-          return;
-        }
-
-        if (user.role === "super_admin") {
-          navigate("/superadmin/dashboard");
-        } else if (user.role === "gym_admin") {
-          navigate("/gym/dashboard");
-        }
-      } else {
-        alert(res.data.message || "Invalid credentials");
-      }
-    } catch {
-      alert("Login failed. Please try again.");
-    } finally {
-      setLoading(false);
-    }
+    dispatch(loginUser({ email, password }, navigate));
   };
 
   return (

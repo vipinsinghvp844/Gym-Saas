@@ -8,6 +8,7 @@ import {
   Search,
   Settings,
   User,
+  Menu 
 } from "lucide-react";
 import { applyTheme } from "../utils/theme";
 import ProfileDropdown from "../components/ProfileDropdown";
@@ -37,19 +38,19 @@ const Header = ({ onMenuClick }) => {
 
   return (
     <header className="h-16 bg-[#020617] border-b border-gray-800 flex items-center justify-between px-6">
-
+<button
+  onClick={onMenuClick}
+  className="lg:hidden text-gray-400 cursor-pointer"
+>
+ <Menu />
+</button>
       {/* SEARCH */}
       <div className="
         flex items-center gap-2 w-1/3 
         bg-gray-100 dark:bg-slate-800 
         px-3 py-2 rounded
       ">
-        <button
-  onClick={onMenuClick}
-  className="lg:hidden text-gray-400"
->
-  ☰
-</button>
+        
 
         <Search size={16} className="text-gray-400" />
         <input

@@ -9,6 +9,7 @@ const Sidebar = ({
   activeClass = "bg-indigo-600",
   baseBg = "bg-[#0f172a]",
 }) => {
+
   return (
     <aside
       className={`
@@ -33,27 +34,40 @@ const Sidebar = ({
       </h2>
 
       <nav className="space-y-1">
-        {menu.map((item) => {
-          const Icon = item.icon;
-          return (
-            <NavLink
-              key={item.path}
-              to={item.path}
-              onClick={onClose}
-              className={({ isActive }) =>
-                `flex items-center gap-3 px-4 py-2 rounded text-sm transition
-                ${
-                  isActive
-                    ? `${activeClass} text-white`
-                    : "text-gray-300 hover:bg-gray-700 hover:text-white"
-                }`
-              }
-            >
-              <Icon size={18} />
-              <span>{item.title}</span>
-            </NavLink>
-          );
-        })}
+        {menu?.map((group) => (
+          <div key={group.section} className="mb-6">
+            <p className="text-xs uppercase tracking-wide text-gray-400 mb-2 px-3">
+              {group.section}
+            </p>
+
+            <div className="space-y-1">
+              {group.items.map((item) => {
+                const Icon = item.icon;
+
+                return (
+                  <NavLink
+                    key={item.path}
+                    to={item.path}
+                    end
+                    onClick={onClose}
+                    className={({ isActive }) =>
+                      `flex items-center gap-3 px-3 py-2 rounded-md text-sm transition
+     ${isActive
+                        ? `${activeClass} text-white font-medium`
+                        : "text-gray-300 hover:bg-gray-700 hover:text-white"
+                      }`
+                    }
+                  >
+                    <Icon size={18} />
+                    <span>{item.title}</span>
+                  </NavLink>
+
+                );
+              })}
+            </div>
+          </div>
+        ))}
+
       </nav>
     </aside>
   );

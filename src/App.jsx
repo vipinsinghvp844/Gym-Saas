@@ -40,7 +40,6 @@ import SuperAdminProfile from "./pages/superadmin/settings/profile";
 
 function App() {
   return (
-    <BrowserRouter>
       <Routes>
 
         {/* =======================
@@ -109,7 +108,6 @@ function App() {
         <Route path="/:slug" element={<PageRenderer />} />
 
       </Routes>
-    </BrowserRouter>
   );
 }
 
