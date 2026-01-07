@@ -1,7 +1,7 @@
 import { useState } from "react";
 import publicApi from "../../services/publicApi";
 
-const RegisterForm = ({ data }) => {
+const RegisterForm = ({ data = {} }) => {
   const [form, setForm] = useState({
     gym_name: "",
     owner_name: "",
@@ -29,59 +29,86 @@ const RegisterForm = ({ data }) => {
   };
 
   return (
-    <section style={{ padding: 40, background: "#f5f5f5" }}>
-      <h3>Register Your Gym</h3>
+    <section className="py-20 bg-gray-50">
+      <div className="max-w-xl mx-auto px-6">
 
-      <form onSubmit={submit}>
-        <input
-          placeholder="Gym Name"
-          value={form.gym_name}
-          onChange={(e) =>
-            setForm({ ...form, gym_name: e.target.value })
-          }
-        />
+        {/* TITLE */}
+        <div className="text-center mb-10">
+          <h2 className="text-3xl font-bold text-gray-900">
+            {data.title || "Register Your Gym"}
+          </h2>
+          <p className="text-gray-500 mt-2">
+            {data.subtitle || "Submit your details to get started"}
+          </p>
+        </div>
 
-        <input
-          placeholder="Owner Name"
-          value={form.owner_name}
-          onChange={(e) =>
-            setForm({ ...form, owner_name: e.target.value })
-          }
-        />
+        {/* FORM CARD */}
+        <div className="bg-white border rounded-xl p-6 shadow-sm">
+          <form onSubmit={submit} className="space-y-4">
 
-        <input
-          placeholder="Owner Email"
-          value={form.owner_email}
-          onChange={(e) =>
-            setForm({ ...form, owner_email: e.target.value })
-          }
-        />
+            <input
+              className="w-full input"
+              placeholder="Gym Name"
+              value={form.gym_name}
+              onChange={(e) =>
+                setForm({ ...form, gym_name: e.target.value })
+              }
+              required
+            />
 
-        <input
-          placeholder="Phone"
-          value={form.phone}
-          onChange={(e) =>
-            setForm({ ...form, phone: e.target.value })
-          }
-        />
+            <input
+              className="w-full input"
+              placeholder="Owner Name"
+              value={form.owner_name}
+              onChange={(e) =>
+                setForm({ ...form, owner_name: e.target.value })
+              }
+              required
+            />
 
-        <select
-          value={form.plan}
-          onChange={(e) =>
-            setForm({ ...form, plan: e.target.value })
-          }
-        >
-          <option value="basic">Basic</option>
-          <option value="pro">Pro</option>
-          <option value="enterprise">Enterprise</option>
-        </select>
+            <input
+              type="email"
+              className="w-full input"
+              placeholder="Owner Email"
+              value={form.owner_email}
+              onChange={(e) =>
+                setForm({ ...form, owner_email: e.target.value })
+              }
+              required
+            />
 
-        <br /><br />
+            <input
+              className="w-full input"
+              placeholder="Phone Number"
+              value={form.phone}
+              onChange={(e) =>
+                setForm({ ...form, phone: e.target.value })
+              }
+            />
 
-        <button type="submit">
-          {data.submit_text || "Submit Request"}
-        </button>
-      </form>
+            <select
+              className="w-full input"
+              value={form.plan}
+              onChange={(e) =>
+                setForm({ ...form, plan: e.target.value })
+              }
+            >
+              <option value="basic">Basic Plan</option>
+              <option value="pro">Pro Plan</option>
+              <option value="enterprise">Enterprise Plan</option>
+            </select>
+
+            <button
+              type="submit"
+              className="w-full py-3 rounded-lg bg-black text-white font-medium hover:bg-gray-900 transition"
+            >
+              {data.submit_text || "Submit Request"}
+            </button>
+
+          </form>
+        </div>
+
+      </div>
     </section>
   );
 };

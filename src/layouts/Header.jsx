@@ -20,15 +20,6 @@ const Header = ({ onMenuClick }) => {
     localStorage.getItem("theme") || "light"
   );
 
-
-  const FetchUser = async ()=>{
-      try{
-        const res = await api.get()
-      }catch(e){
-        console.error(e,"Fetch User Failed")
-      }
-  }
-
   const changeTheme = (mode) => {
     setTheme(mode);
     localStorage.setItem("theme", mode);

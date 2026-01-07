@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import api from "../../services/api";
 import PageHeader from "../../components/ui/PageHeader";
 import GymLoader from "../../components/ui/GymLoader";
+import PageTitle from "../../layouts/PageTitle";
 
 const StatCard = ({ title, value, change }) => (
   <div className="bg-white border border-gray-200 rounded-xl p-5">
@@ -39,13 +40,22 @@ const Dashboard = () => {
   if (!stats) return null;
 
  return (
-  <div className="max-w-7xl mx-auto px-6 py-6 bg-white">
+  <div className="max-w-7xl mx-auto px-6 py-6 bg-[#f3f6f9] min-h-screen space-y-6">
 
-    <PageHeader
-      title="Dashboard"
-      subtitle="Overview of gyms, users, and platform activity"
-      showBack={false}
-    />
+     {/* PAGE TITLE */}
+      <PageTitle
+        title="Dashboard"
+        subtitle="Overview of gyms, users, and platform activity"
+      // rightSlot={
+      //   <button className="px-4 py-2 bg-brand text-white rounded-md text-sm">
+      //     + Add Member
+      //   </button>
+      // }
+      //       breadcrumb={[
+      //   { label: "Home", href: "/gym/dashboard" },
+      //   { label: "Dashboard" },
+      // ]}
+      />
 
     {/* CONTENT AREA */}
     {loading ? (

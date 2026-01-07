@@ -1,5 +1,6 @@
 import { combineReducers, configureStore } from "@reduxjs/toolkit";
 import authSlice from "./slice/authSlice";
+import gymSlice from "./slice/gymSlice";
 import {
   persistStore,
   persistReducer,
@@ -15,6 +16,7 @@ import storage from "redux-persist/lib/storage";
 // Combine your reducers
 const rootReducer = combineReducers({
   auth: authSlice,
+  gym: gymSlice,
 });
 
 

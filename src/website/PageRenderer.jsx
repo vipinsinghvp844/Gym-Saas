@@ -6,13 +6,23 @@ import Hero from "./sections/Hero";
 import Features from "./sections/Features";
 import CTA from "./sections/CTA";
 import RegisterForm from "./sections/RegisterForm";
+import PublicHeader from "./sections/Header";
+import PublicFooter from "./sections/Footer";
+import Pricing from "./sections/pricing";
+import Testimonials from "./sections/Testimonials";
+import Gallery from "./sections/Gallery";
 
 
 const sectionMap = {
+  header:PublicHeader,
   hero: Hero,
   features: Features,
   cta: CTA,
+  pricing:Pricing,
+  testimonials:Testimonials,
+  gallery:Gallery,
   register_form: RegisterForm,
+  footer: PublicFooter,
 };
 
 const PageRenderer = () => {

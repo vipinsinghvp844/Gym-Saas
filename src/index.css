@@ -13,6 +13,12 @@
   focus:outline-none focus:ring-2 focus:ring-indigo-600;
 }
 
+.input {
+  @apply px-4 py-2 border rounded-md text-sm
+  focus:outline-none focus:ring-2 focus:ring-black;
+}
+
+
 /*default set theme on site*/
 :root {
   --brand-primary: #4f46e5;

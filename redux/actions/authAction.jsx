@@ -21,6 +21,7 @@ export const loginUser = ({ email, password }, navigate) => async (dispatch) => 
       return;
     }
 
+    // ✅ LOGIN SUCCESS
     const { token, user } = res.data;
 
     dispatch(
@@ -29,6 +30,7 @@ export const loginUser = ({ email, password }, navigate) => async (dispatch) => 
         user,
       })
     );
+
     toast.success("Login successful");
 
     /* FORCE PASSWORD CHANGE */
@@ -43,8 +45,15 @@ export const loginUser = ({ email, password }, navigate) => async (dispatch) => 
     } else if (user.role === "gym_admin") {
       navigate("/gym/dashboard");
     }
+
   } catch (err) {
-    toast.error("Login failed. Please try again.");
-    dispatch(loginFail("Login failed. Please try again."));
+    // 🔥 BACKEND ERROR MESSAGE (403, 401, etc.)
+    const message =
+      err?.response?.data?.message ||
+      "Login failed. Please try again.";
+
+    toast.error(message);
+    dispatch(loginFail(message));
   }
 };
+

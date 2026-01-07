@@ -1,108 +1,76 @@
-import { useEffect, useState } from "react";
-import api from "../../services/api";
+import { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import PageHeader from "../../components/ui/PageHeader";
 import GymLoader from "../../components/ui/GymLoader";
+import { fetchGyms, updateGymStatus } from "../../../redux/actions/gymAction";
 
 const Gyms = () => {
-  const [gyms, setGyms] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const dispatch = useDispatch();
+  const { list, listLoading } = useSelector((state) => state.gym);
 
   useEffect(() => {
-    const fetchGyms = async () => {
-      try {
-        setIsLoading(true);
-        const res = await api.get("/gyms/list.php");
-        setGyms(res.data.data || []);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchGyms();
-  }, []);
-
+    dispatch(fetchGyms());
+  }, [dispatch]);
 
   return (
     <div className="max-w-6xl mx-auto px-6 py-6 bg-white">
-
-      {/* HEADER */}
       <PageHeader
         title="All Gyms"
         subtitle="List of all registered gyms on the platform"
       />
 
-
-      {/* CARD */}
       <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+        <table className="min-w-full text-sm text-gray-700">
+          <thead className="bg-gray-50">
+            <tr>
+              <th className="px-4 py-3 text-left">ID</th>
+              <th className="px-4 py-3 text-left">Name</th>
+              <th className="px-4 py-3 text-left">Slug</th>
+              <th className="px-4 py-3 text-left">Status</th>
+            </tr>
+          </thead>
 
-        {/* TABLE */}
-        <div className="overflow-x-auto">
-          <table className="min-w-full text-sm text-gray-700">
-            <thead className="bg-gray-50 text-gray-600">
+          <tbody className="divide-y">
+            {listLoading && (
               <tr>
-                <th className="px-4 py-3 text-left font-medium">ID</th>
-                <th className="px-4 py-3 text-left font-medium">Name</th>
-                <th className="px-4 py-3 text-left font-medium">Slug</th>
-                <th className="px-4 py-3 text-left font-medium">Status</th>
+                <td colSpan="4" className="py-10 text-center">
+                  <GymLoader label="Loading gyms..." />
+                </td>
               </tr>
-            </thead>
+            )}
 
-            <tbody className="divide-y divide-gray-200">
+            {!listLoading && list?.length === 0 && (
+              <tr>
+                <td colSpan="4" className="py-6 text-center text-gray-500">
+                  No gyms found
+                </td>
+              </tr>
+            )}
 
-              {isLoading && (
-                <tr>
-                  <td colSpan="4" className="py-10">
-                    <div className="flex justify-center">
-                      <GymLoader label="Loading gyms..." />
-                    </div>
-                  </td>
-                </tr>
-              )}
-
-              {!isLoading && gyms.length === 0 && (
-                <tr>
-                  <td
-                    colSpan="4"
-                    className="px-4 py-6 text-center text-gray-500"
-                  >
-                    No gyms found
-                  </td>
-                </tr>
-              )}
-
-              {!isLoading && gyms.map((g) => (
-                <tr
-                  key={g.id}
-                  className="hover:bg-gray-50 transition"
-                >
+            {!listLoading &&
+              list?.map((g) => (
+                <tr key={g.id}>
                   <td className="px-4 py-3">{g.id}</td>
-                  <td className="px-4 py-3 font-medium text-gray-900">
-                    {g.name}
-                  </td>
-                  <td className="px-4 py-3 text-gray-500">
-                    {g.slug}
-                  </td>
+                  <td className="px-4 py-3 font-medium">{g.name}</td>
+                  <td className="px-4 py-3 text-gray-500">{g.slug}</td>
                   <td className="px-4 py-3">
-                    <span
-                      className={`px-2 py-1 rounded-full text-xs font-medium
-            ${g.status === "active"
-                          ? "bg-green-100 text-green-700"
-                          : "bg-yellow-100 text-yellow-700"
+                    <button
+                      onClick={() =>
+                        dispatch(updateGymStatus(g.id, g.status))
+                      }
+                      className={`px-3 py-1 rounded-full text-xs font-medium transition
+      ${g.status === "active"
+                          ? "bg-green-100 text-green-700 hover:bg-green-200"
+                          : "bg-yellow-100 text-yellow-700 hover:bg-yellow-200"
                         }`}
                     >
                       {g.status}
-                    </span>
+                    </button>
                   </td>
                 </tr>
               ))}
-
-            </tbody>
-
-          </table>
-        </div>
-
+          </tbody>
+        </table>
       </div>
     </div>
   );

@@ -3,41 +3,75 @@ import api from "../../services/api";
 import PageHeader from "../../components/ui/PageHeader";
 
 const availableSections = [
-  { type: "header", fields: ["logo", "menu", "button"] },
-  { type: "hero", fields: ["title", "subtitle", "button_text"] },
-  { type: "features", fields: ["heading", "items"] },
-  { type: "cta", fields: ["text", "button"] },
-  { type: "register_form", fields: ["submit_text"] },
-  { type: "footer", fields: ["logo", "social", "link_text", "images"] },
+  {
+    type: "header",
+    fields: { logo_text: "", menu: "", button: "" },
+  },
+  {
+    type: "hero",
+    fields: { title: "", subtitle: "", button_text: "" },
+  },
+  {
+    type: "features",
+    fields: { heading: "", items: "" },
+  },
+  {
+    type: "cta",
+    fields: { text: "", button: "" },
+  },
+  {
+    type: "register_form",
+    fields: { submit_text: "" },
+  },
+  {
+    type: "footer",
+    fields: { logo: "", social: "", link_text: "" },
+  },
 ];
+
 
 const CreateTemplate = () => {
   const [name, setName] = useState("");
   const [sections, setSections] = useState([]);
 
   const addSection = (sec) => {
-    setSections([...sections, sec]);
-  };
+  setSections([
+    ...sections,
+    {
+      type: sec.type,
+      data: { ...sec.fields },
+    },
+  ]);
+};
+
+const updateField = (index, field, value) => {
+  const updated = [...sections];
+  updated[index].data[field] = value;
+  setSections(updated);
+};
 
   const removeSection = (index) => {
     setSections(sections.filter((_, i) => i !== index));
   };
 
   const save = async () => {
-    if (!name || sections.length === 0) {
-      alert("Template name & at least one section required");
-      return;
-    }
+  if (!name || sections.length === 0) {
+    alert("Template name & at least one section required");
+    return;
+  }
 
-    await api.post("/templatess/create.php", {
-      name,
-      structure: { sections },
-    });
+  await api.post("/templatess/create.php", {
+    name,
+    structure: {
+      sections,
+    },
+  });
 
-    alert("Template created successfully");
-    setName("");
-    setSections([]);
-  };
+  alert("Template created successfully");
+  setName("");
+  setSections([]);
+};
+
 
   return (
       <div className="max-w-6xl mx-auto px-6 py-6 bg-white">
@@ -84,42 +118,56 @@ const CreateTemplate = () => {
           </div>
 
           {/* TEMPLATE STRUCTURE */}
-          <div>
-            <h3 className="text-sm font-semibold text-gray-800 mb-3">
-              Template Structure
-            </h3>
+       <div>
+  <h3 className="text-sm font-semibold text-gray-800 mb-3">
+    Template Structure
+  </h3>
 
-            {sections.length === 0 && (
-              <p className="text-sm text-gray-500">
-                No sections added yet
-              </p>
-            )}
+  {sections.length === 0 && (
+    <p className="text-sm text-gray-500">
+      No sections added yet
+    </p>
+  )}
 
-            <div className="space-y-3">
-              {sections.map((sec, i) => (
-                <div
-                  key={i}
-                  className="flex items-start justify-between gap-4 border border-gray-200 rounded-lg p-4 bg-gray-50"
-                >
-                  <div>
-                    <p className="font-medium text-gray-900 capitalize">
-                      {i + 1}. {sec.type}
-                    </p>
-                    <p className="text-xs text-gray-500 mt-1">
-                      Fields: {sec.fields.join(", ")}
-                    </p>
-                  </div>
+  <div className="space-y-4">
+    {sections.map((sec, i) => (
+      <div
+        key={i}
+        className="border border-gray-200 rounded-lg p-4 bg-gray-50"
+      >
+        {/* HEADER */}
+        <div className="flex justify-between items-center mb-3">
+          <p className="font-medium text-gray-900 capitalize">
+            {i + 1}. {sec.type}
+          </p>
 
-                  <button
-                    onClick={() => removeSection(i)}
-                    className="text-xs text-red-600 hover:text-red-800 transition"
-                  >
-                    Remove
-                  </button>
-                </div>
-              ))}
-            </div>
-          </div>
+          <button
+            onClick={() => removeSection(i)}
+            className="text-xs text-red-600 hover:text-red-800"
+          >
+            Remove
+          </button>
+        </div>
+
+        {/* FIELDS */}
+        <div className="grid gap-3">
+          {Object.keys(sec.data).map((field) => (
+            <input
+              key={field}
+              placeholder={field.replace("_", " ")}
+              value={sec.data[field]}
+              onChange={(e) =>
+                updateField(i, field, e.target.value)
+              }
+              className="w-full rounded-md border px-3 py-2 text-sm"
+            />
+          ))}
+        </div>
+      </div>
+    ))}
+  </div>
+</div>
+
 
           {/* ACTION */}
           <div className="flex justify-end pt-4 border-t border-gray-200">
