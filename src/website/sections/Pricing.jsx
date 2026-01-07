@@ -15,7 +15,7 @@ const Pricing = ({ data }) => {
         </div>
 
         <div className="grid md:grid-cols-3 gap-6">
-          {plans.map((plan, i) => (
+          {plans?.map((plan, i) => (
             <div
               key={i}
               className="bg-white border rounded-xl p-6 text-center shadow-sm hover:shadow-md transition"
@@ -26,13 +26,13 @@ const Pricing = ({ data }) => {
               </p>
 
               <ul className="text-sm text-gray-600 space-y-2 mb-6">
-                {plan.features.map((f, idx) => (
+                {plan?.features.map((f, idx) => (
                   <li key={idx}>✓ {f}</li>
                 ))}
               </ul>
 
               <button className="w-full py-2 rounded bg-[var(--brand-primary)] text-white">
-                {plan.button_text || "Get Started"}
+                {plan?.button_text || "Get Started"}
               </button>
             </div>
           ))}
