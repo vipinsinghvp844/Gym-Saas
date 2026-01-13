@@ -3,6 +3,29 @@ import api from "../../services/api";
 import PageHeader from "../../components/ui/PageHeader";
 import GymLoader from "../../components/ui/GymLoader";
 import PageTitle from "../../layouts/PageTitle";
+import RevenueChart from "../../layouts/RevenueChart";
+import GymStatusChart from "../../layouts/GymStatusChart";
+import LatestGymsTable from "../../layouts/LatestGymsTable";
+import RecentPaymentsTable from "../../layouts/RecentPaymentsTable";
+
+const payments = [
+  {
+    id: "1",
+    gym: "FitZone Downtown",
+    amount: "$499.00",
+    status: "Paid",
+    date: "Jan 5, 2026",
+    invoice: "INV-2026-001",
+  },
+  {
+    id: "2",
+    gym: "Elite Fitness Center",
+    amount: "$299.00",
+    status: "Pending",
+    date: "Jan 3, 2026",
+    invoice: "INV-2026-003",
+  },
+];
 
 const StatCard = ({ title, value, change }) => (
   <div className="bg-white border border-gray-200 rounded-xl p-5">
@@ -74,30 +97,11 @@ const Dashboard = () => {
         </div>
 
         {/* LATEST GYMS */}
-        <div className="bg-white border border-gray-200 rounded-xl p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">
-            Latest Gyms
-          </h3>
 
-          <table className="w-full text-sm text-gray-700">
-            <thead className="text-gray-500 border-b">
-              <tr>
-                <th className="text-left py-2">Name</th>
-                <th className="text-center py-2">Slug</th>
-                <th className="text-center py-2">Created</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y">
-              {stats.latest_gyms.map((g) => (
-                <tr key={g.id}>
-                  <td className="py-2">{g.name}</td>
-                  <td className="text-center">{g.slug}</td>
-                  <td className="text-center">{g.created_at}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <RevenueChart />
+        <GymStatusChart />
+        <LatestGymsTable gyms={stats.latest_gyms}/>
+        <RecentPaymentsTable payments={payments} />
 
       </div>
     )}
