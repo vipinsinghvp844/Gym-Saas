@@ -8,7 +8,7 @@ import CTA from "./sections/CTA";
 import RegisterForm from "./sections/RegisterForm";
 import PublicHeader from "./sections/Header";
 import PublicFooter from "./sections/Footer";
-import Pricing from "./sections/pricing";
+import Pricing from "./sections/Pricing";
 import Testimonials from "./sections/Testimonials";
 import Gallery from "./sections/Gallery";
 
