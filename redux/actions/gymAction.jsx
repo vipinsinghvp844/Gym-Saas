@@ -37,6 +37,8 @@ export const createGym = (form, navigate) => async (dispatch) => {
     dispatch(createStart());
 
     const res = await api.post("/gyms/create.php", form);
+    console.log(res,"resaction");
+    
 
     if (!res.data.status) {
       toast.error(res.data.message || "Create failed");

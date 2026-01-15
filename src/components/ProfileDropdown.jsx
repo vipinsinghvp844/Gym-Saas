@@ -5,6 +5,7 @@ import { logout } from "../utils/auth";
 import useAuthUser from "../hooks/useAuthUser";
 import avatarPlaceholder from "../assets/react.svg";
 
+
 const ProfileDropdown = () => {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
@@ -36,6 +37,7 @@ const ProfileDropdown = () => {
   const profileImage = user.avatar
     ? `http://localhost/GymsBackend${user.avatar}?v=${Date.now()}`
     : avatarPlaceholder;
+  
 
   return (
     <div className="relative" ref={ref}>
