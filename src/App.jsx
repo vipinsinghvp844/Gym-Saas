@@ -14,6 +14,20 @@ import Pages from "./pages/superadmin/pages";
 import CreatePage from "./pages/superadmin/CreatePage";
 import EditPage from "./pages/superadmin/EditPage";
 import CreateTemplate from "./pages/superadmin/CreateTemplate";
+import SuperAdminProfile from "./pages/superadmin/settings/profile";
+import GymPlans from "./pages/superadmin/GymPlans";
+import Plans from "./pages/superadmin/Plans";
+import Subscriptions from "./pages/superadmin/Subscriptions";
+import Payments from "./pages/superadmin/Payments";
+import Invoices from "./pages/superadmin/Invoices";
+import RevenueAnalytics from "./pages/superadmin/RevenueAnalytics";
+import GymGrowth from "./pages/superadmin/GymGrowth";
+import UsageReports from "./pages/superadmin/UsageReports";
+import EmailTemplates from "./pages/superadmin/EmailTemplates";
+import SupportTickets from "./pages/superadmin/SupportTickets";
+import Announcements from "./pages/superadmin/Announcements";
+import Settings from "./pages/superadmin/Settings";
+import AuditLogs from "./pages/superadmin/AuditLogs";
 
 /* =======================
    GYM ADMIN PAGES
@@ -21,7 +35,7 @@ import CreateTemplate from "./pages/superadmin/CreateTemplate";
 import GymDashboard from "./pages/gymadmin/Dashboard";
 import GymPages from "./pages/gymadmin/pages";
 import EditGymPage from "./pages/gymadmin/pages/EditPage";
-import GymProfile from "../src/pages/gymadmin/settings/Profile"
+import GymProfile from "../src/pages/gymadmin/settings/Profile";
 
 /* =======================
    LAYOUTS & AUTH
@@ -36,7 +50,9 @@ import GymAdminLayout from "./layouts/GymAdminLayout";
 ======================= */
 import PageRenderer from "./website/PageRenderer";
 import GymPageRenderer from "./website/GymPageRenderer";
-import SuperAdminProfile from "./pages/superadmin/settings/profile";
+import Integrations from "./pages/superadmin/Integrations";
+
+
 
 function App() {
   return (
@@ -78,6 +94,22 @@ function App() {
           <Route path="templates/create" element={<CreateTemplate />} />
           <Route path="pages" element={<Pages />} />
           <Route path="create-page" element={<CreatePage />} />
+          <Route path="gym-plans" element={<GymPlans /> } />
+          <Route path="billing/plans" element={<Plans/> } />
+          <Route path="billing/subscriptions" element={<Subscriptions/> } />
+          <Route path="billing/payments" element={<Payments/> } />
+          <Route path="billing/invoices" element={<Invoices/> } />
+          <Route path="analytics/revenue" element={<RevenueAnalytics/> } />
+          <Route path="analytics/gym-growth" element={<GymGrowth/> } />
+          <Route path="analytics/usage" element={<UsageReports/> } />
+          <Route path="email-templates" element={<EmailTemplates/> } />
+          <Route path="support/tickets" element={<SupportTickets/> } />
+          <Route path="announcements" element={<Announcements/> } />
+          <Route path="settings" element={<Settings/> } />
+          <Route path="audit-logs" element={<AuditLogs/> } />
+          <Route path="integrations" element={<Integrations/> } />
+
+
           <Route path="pages/edit/:id" element={<EditPage />} />
           <Route path="setting/profile" element={<SuperAdminProfile />} />
         </Route>

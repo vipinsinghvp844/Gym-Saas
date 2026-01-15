@@ -1,41 +1,42 @@
-import { useEffect, useState } from "react";
-import api from "../../services/api";
-import { DollarSign, Download, Plus, CreditCard, Receipt, FileText } from 'lucide-react';
-import PageHeader from "../../components/ui/PageHeader";
-import GymLoader from "../../components/ui/GymLoader";
+import {  Download } from 'lucide-react';
 
 
-const Templates = () => {
-  const [templates, setTemplates] = useState([]);
-  const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    const loadTemplates = async () => {
-      try {
-        setLoading(true);
-        const res = await api.get("/templatess/list.php");
-        setTemplates(res.data.data || []);
-      } catch (err) {
-        console.error("Failed to load templates", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadTemplates();
-  }, []);
+const Payments = () => {
+  const payments = [
+    { id: '1', gym: 'PowerFit Gym', amount: '$299.00', status: 'Completed', date: 'Jan 15, 2024', invoice: 'INV-1234', method: 'Card ****4242' },
+    { id: '2', gym: 'Iron Paradise', amount: '$99.00', status: 'Completed', date: 'Jan 12, 2024', invoice: 'INV-1233', method: 'Card ****5678' },
+    { id: '3', gym: 'Elite Fitness', amount: '$49.00', status: 'Failed', date: 'Jan 10, 2024', invoice: 'INV-1232', method: 'Card ****9012' },
+  ];
 
   return (
     <div className="space-y-6 p-5">
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-slate-900">Templates</h1>
-          <p className="text-sm text-slate-500 mt-1">Manage content templates</p>
+          <h1 className="text-2xl font-semibold text-slate-900">Payments</h1>
+          <p className="text-sm text-slate-500 mt-1">Track payment transactions</p>
         </div>
-        <button className="h-10 px-4 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 flex items-center gap-2">
-          <Plus className="w-4 h-4" />
-          Create Template
+        <button className="h-10 px-4 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50 flex items-center gap-2">
+          <Download className="w-4 h-4" />
+          Export
         </button>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
+          <p className="text-sm text-slate-600 mb-1">Total Payments</p>
+          <p className="text-2xl font-semibold text-slate-900">$45,678</p>
+        </div>
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
+          <p className="text-sm text-slate-600 mb-1">This Month</p>
+          <p className="text-2xl font-semibold text-slate-900">$12,345</p>
+        </div>
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
+          <p className="text-sm text-slate-600 mb-1">Completed</p>
+          <p className="text-2xl font-semibold text-slate-900">342</p>
+        </div>
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
+          <p className="text-sm text-slate-600 mb-1">Failed</p>
+          <p className="text-2xl font-semibold text-slate-900">12</p>
+        </div>
       </div>
       <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
         <table className="w-full">
@@ -50,27 +51,7 @@ const Templates = () => {
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-200">
-            {/* LOADER */}
-            {loading && (
-              <tr>
-                <td colSpan="3" className="py-10">
-                  <div className="flex justify-center">
-                    <GymLoader label="Loading templates..." />
-                  </div>
-                </td>
-              </tr>
-            )}
-            {!loading && templates.length === 0 && (
-              <tr>
-                <td
-                  colSpan="3"
-                  className="px-4 py-6 text-center text-gray-500"
-                >
-                  No templates found
-                </td>
-              </tr>
-            )}
-            {templates.map(payment => (
+            {payments.map(payment => (
               <tr key={payment.id} className="hover:bg-slate-50">
                 <td className="px-6 py-4"><p className="text-sm font-semibold text-slate-900">{payment.gym}</p></td>
                 <td className="px-6 py-4"><p className="text-sm font-semibold text-slate-900">{payment.amount}</p></td>
@@ -87,5 +68,4 @@ const Templates = () => {
   );
 }
 
-
-export default Templates;
+export default Payments;

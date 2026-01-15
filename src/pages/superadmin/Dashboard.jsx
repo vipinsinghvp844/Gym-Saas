@@ -1,12 +1,14 @@
 import { useEffect, useState } from "react";
 import api from "../../services/api";
-import PageHeader from "../../components/ui/PageHeader";
 import GymLoader from "../../components/ui/GymLoader";
 import PageTitle from "../../layouts/PageTitle";
 import RevenueChart from "../../layouts/RevenueChart";
 import GymStatusChart from "../../layouts/GymStatusChart";
 import LatestGymsTable from "../../layouts/LatestGymsTable";
 import RecentPaymentsTable from "../../layouts/RecentPaymentsTable";
+import { KPICard } from "../../layouts/KPICard";
+import { Building2, TrendingUp, UserCog, DollarSign   } from 'lucide-react';
+
 
 const payments = [
   {
@@ -27,17 +29,6 @@ const payments = [
   },
 ];
 
-const StatCard = ({ title, value, change }) => (
-  <div className="bg-white border border-gray-200 rounded-xl p-5">
-    <p className="text-sm text-gray-500">{title}</p>
-    <h2 className="text-2xl font-semibold text-gray-900 mt-1">
-      {value}
-    </h2>
-    <p className="text-xs text-emerald-600 mt-1">
-      ▲ {change} last month
-    </p>
-  </div>
-);
 
 const Dashboard = () => {
   const [stats, setStats] = useState(null);
@@ -89,23 +80,51 @@ const Dashboard = () => {
       <div className="space-y-6">
 
         {/* TOP STATS */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-          <StatCard title="Total Gyms" value={stats.total_gyms} change="2.3%" />
-          <StatCard title="Active Gyms" value={stats.active_gyms} change="1.8%" />
-          <StatCard title="Total Users" value={stats.total_users} change="3.1%" />
-          <StatCard title="Revenue" value="$123.6k" change="10.6%" />
-        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+        <KPICard
+          title="Total Gyms"
+          value={stats.total_gyms}
+          change={12.5}
+          icon={Building2}
+          iconColor="text-indigo-600"
+          iconBgColor="bg-indigo-100"
+        />
+        <KPICard
+          title="Active Gyms"
+          value={stats.active_gyms}
+          change={8.2}
+          icon={TrendingUp}
+          iconColor="text-green-600"
+          iconBgColor="bg-green-100"
+        />
+        <KPICard
+          title="Total Gym Admins"
+          value={stats.total_users}
+          change={5.3}
+          icon={UserCog}
+          iconColor="text-purple-600"
+          iconBgColor="bg-purple-100"
+        />
+        <KPICard
+          title="Platform MRR"
+          value="$112K"
+          change={23.1}
+          icon={DollarSign}
+          iconColor="text-emerald-600"
+          iconBgColor="bg-emerald-100"
+        />
+      </div>
 
-        {/* LATEST GYMS */}
-
+         {/* Charts */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <RevenueChart />
         <GymStatusChart />
+      </div>
         <LatestGymsTable gyms={stats.latest_gyms}/>
         <RecentPaymentsTable payments={payments} />
 
       </div>
     )}
-
   </div>
 );
 

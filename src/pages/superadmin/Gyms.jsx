@@ -14,8 +14,6 @@ const Gyms = () => {
     const dispatch = useDispatch();
   const { list, listLoading } = useSelector((state) => state.gym);
 
-  console.log(list,"list");
-  
 
   useEffect(() => {
     dispatch(fetchGyms());
@@ -165,6 +163,15 @@ const statusColors = {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200">
+              {listLoading && (
+                <tr>
+                    <td colSpan="7" className="py-10">
+                      <div className="flex justify-center">
+                        <GymLoader label="Loading requests..." />
+                      </div>
+                    </td>
+                  </tr>
+              )}
               {list?.map((gym) => (
                 <tr key={gym.id} className="hover:bg-slate-50">
                   <td className="px-6 py-4">

@@ -62,23 +62,6 @@ const superAdminMenu = [
     ],
   },
 
-  /* ============ USERS & ROLES ============ */
-  {
-    section: "USERS & ROLES",
-    items: [
-      {
-        title: "Users",
-        path: "/superadmin/users",
-        icon: Users,
-      },
-      {
-        title: "Roles & Permissions",
-        path: "/superadmin/roles",
-        icon: Shield,
-      },
-    ],
-  },
-
   /* ================= BILLING ================= */
   {
     section: "BILLING",

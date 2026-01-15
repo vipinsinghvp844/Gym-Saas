@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import api from "../../services/api";
-import { Link } from "react-router-dom";
-import PageHeader from "../../components/ui/PageHeader";
 import GymLoader from "../../components/ui/GymLoader";
+import { DollarSign, Download, Plus, CreditCard, Receipt, FileText } from 'lucide-react';
+
 
 const Pages = () => {
   const [pages, setPages] = useState([]);
@@ -25,95 +25,66 @@ const Pages = () => {
   }, []);
 
   return (
-    <div className="max-w-6xl mx-auto px-6 py-6 bg-white">
-
-      {/* HEADER */}
-      <PageHeader
-        title="Pages"
-        subtitle="Manage website pages and their assigned templates"
-      />
-
-      {/* CARD */}
-      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
-
-        <div className="overflow-x-auto">
-          <table className="min-w-full text-sm text-gray-700">
-            <thead className="bg-gray-50 text-gray-600">
-              <tr>
-                <th className="px-4 py-3 text-left font-medium">ID</th>
-                <th className="px-4 py-3 text-left font-medium">Slug</th>
-                <th className="px-4 py-3 text-left font-medium">Template</th>
-                <th className="px-4 py-3 text-left font-medium">Status</th>
-                <th className="px-4 py-3 text-left font-medium">Action</th>
-              </tr>
-            </thead>
-
-            <tbody className="divide-y divide-gray-200">
-
-              {/* LOADER */}
-              {loading && (
-                <tr>
-                  <td colSpan="5" className="py-10">
-                    <div className="flex justify-center">
-                      <GymLoader label="Loading pages..." />
-                    </div>
-                  </td>
-                </tr>
-              )}
-
-              {/* EMPTY */}
-              {!loading && pages.length === 0 && (
-                <tr>
-                  <td
-                    colSpan="5"
-                    className="px-4 py-6 text-center text-gray-500"
-                  >
-                    No pages found
-                  </td>
-                </tr>
-              )}
-
-              {/* DATA */}
-              {!loading && pages.map((p) => (
-                <tr
-                  key={p.id}
-                  className="hover:bg-gray-50 transition"
-                >
-                  <td className="px-4 py-3">{p.id}</td>
-                  <td className="px-4 py-3 font-medium text-gray-900">
-                    /{p.slug}
-                  </td>
-                  <td className="px-4 py-3">{p.template}</td>
-                  <td className="px-4 py-3">
-                    <span
-                      className={`px-2 py-1 rounded-full text-xs font-medium
-                        ${
-                          p.status === "published"
-                            ? "bg-green-100 text-green-700"
-                            : "bg-gray-100 text-gray-600"
-                        }`}
-                    >
-                      {p.status}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3">
-                    <Link
-                      to={`/superadmin/pages/edit/${p.id}`}
-                      className="text-indigo-600 text-sm hover:underline"
-                    >
-                      Edit
-                    </Link>
-                  </td>
-                </tr>
-              ))}
-
-            </tbody>
-          </table>
+    <div className="space-y-6 p-5">
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold text-slate-900">Pages</h1>
+          <p className="text-sm text-slate-500 mt-1">Manage content Pages</p>
         </div>
-
+        <button className="h-10 px-4 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 flex items-center gap-2">
+          <Plus className="w-4 h-4" />
+          Create Template
+        </button>
+      </div>
+      <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        <table className="w-full">
+          <thead className="bg-slate-50 border-b border-slate-200">
+            <tr>
+              <th className="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Gym</th>
+              <th className="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Amount</th>
+              <th className="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Status</th>
+              <th className="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Date</th>
+              <th className="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Invoice</th>
+              <th className="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Method</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-200">
+            {/* LOADER */}
+            {loading && (
+              <tr>
+                <td colSpan="3" className="py-10">
+                  <div className="flex justify-center">
+                    <GymLoader label="Loading templates..." />
+                  </div>
+                </td>
+              </tr>
+            )}
+            {!loading && pages.length === 0 && (
+              <tr>
+                <td
+                  colSpan="3"
+                  className="px-4 py-6 text-center text-gray-500"
+                >
+                  No templates found
+                </td>
+              </tr>
+            )}
+            {pages.map(payment => (
+              <tr key={payment.id} className="hover:bg-slate-50">
+                <td className="px-6 py-4"><p className="text-sm font-semibold text-slate-900">{payment.gym}</p></td>
+                <td className="px-6 py-4"><p className="text-sm font-semibold text-slate-900">{payment.amount}</p></td>
+                <td className="px-6 py-4"><span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-semibold ${payment.status === 'Completed' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>{payment.status}</span></td>
+                <td className="px-6 py-4"><p className="text-sm text-slate-600">{payment.date}</p></td>
+                <td className="px-6 py-4"><p className="text-sm font-mono text-slate-600">{payment.invoice}</p></td>
+                <td className="px-6 py-4"><p className="text-sm text-slate-600">{payment.method}</p></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     </div>
   );
-};
+}
+
 
 export default Pages;
