@@ -2,7 +2,14 @@ import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
   list: [],
+  stats: {
+    total: 0,
+    active: 0,
+    trial: 0,
+    suspended: 0,
+  },
   listLoading: false,
+  statsLoading: false,
   creating: false,
   error: null,
 };
@@ -12,8 +19,8 @@ const gymSlice = createSlice({
   initialState,
   reducers: {
     /* ======================
-      GET GYMS
-   ====================== */
+       GET GYMS
+    ====================== */
     fetchGymsStart: (state) => {
       state.listLoading = true;
       state.error = null;
@@ -26,9 +33,25 @@ const gymSlice = createSlice({
       state.listLoading = false;
       state.error = payload;
     },
-    /*====================
-      CREATE GYM
-    ======================*/
+
+    /* ======================
+       STATS
+    ====================== */
+    fetchStatsStart: (state) => {
+      state.statsLoading = true;
+    },
+    fetchStatsSuccess: (state, { payload }) => {
+      state.statsLoading = false;
+      state.stats = payload;
+    },
+    fetchStatsFail: (state, { payload }) => {
+      state.statsLoading = false;
+      state.error = payload;
+    },
+
+    /* ======================
+       CREATE GYM
+    ====================== */
     createStart: (state) => {
       state.creating = true;
       state.error = null;
@@ -42,7 +65,7 @@ const gymSlice = createSlice({
     },
 
     /* ======================
-     UPDATE GYM STATUS(active/inactive)
+       UPDATE STATUS
     ====================== */
     updateStatusStart: (state) => {
       state.error = null;
@@ -50,26 +73,31 @@ const gymSlice = createSlice({
     updateStatusSuccess: (state, { payload }) => {
       const gym = state.list.find((g) => g.id === payload.gym_id);
       if (gym) {
-        gym.status = payload.status; // 🔥 instant UI update
+        gym.status = payload.status;
       }
     },
     updateStatusFail: (state, { payload }) => {
       state.error = payload;
     },
-
   },
 });
 
 export const {
-  createStart, //create gym
-  createSuccess,  // create gym res
-  createFail,  // ceate gym fail
-  fetchGymsStart, // fetch gym list
-  fetchGymsSuccess, // fetch gym list
-  fetchGymsFail, // fetch gym list
-  updateStatusStart, //update status active/inactive
-  updateStatusSuccess, //update status active/inactive
-  updateStatusFail, //update status active/inactive
-} = gymSlice.actions; //update status active/inactive
+  fetchGymsStart,
+  fetchGymsSuccess,
+  fetchGymsFail,
+
+  fetchStatsStart,
+  fetchStatsSuccess,
+  fetchStatsFail,
+
+  createStart,
+  createSuccess,
+  createFail,
+
+  updateStatusStart,
+  updateStatusSuccess,
+  updateStatusFail,
+} = gymSlice.actions;
 
 export default gymSlice.reducer;

@@ -4,6 +4,9 @@ import {
   fetchGymsStart,
   fetchGymsSuccess,
   fetchGymsFail,
+  fetchStatsStart,
+  fetchStatsSuccess,
+  fetchStatsFail,
   createStart,
   createSuccess,
   createFail,
@@ -24,6 +27,29 @@ export const fetchGyms = () => async (dispatch) => {
     dispatch(fetchGymsSuccess(res.data.data || []));
   } catch (err) {
     dispatch(fetchGymsFail("Failed to load gyms"));
+  }
+};
+
+/*=========================
+  fettch Card Stats
+===========================*/
+
+export const fetchGymStats = () => async (dispatch) => {
+  try {
+    dispatch(fetchStatsStart());
+
+    const res = await api.get("/gyms/stats.php");
+    console.log(res,"res");
+    
+
+    if (!res.data.status) {
+      dispatch(fetchStatsFail("Failed to load stats"));
+      return;
+    }
+
+    dispatch(fetchStatsSuccess(res.data.data));
+  } catch (err) {
+    dispatch(fetchStatsFail("Failed to load stats"));
   }
 };
 

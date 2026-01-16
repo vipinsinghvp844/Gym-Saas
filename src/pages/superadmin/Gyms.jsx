@@ -13,6 +13,11 @@ const Gyms = () => {
   const [planFilter, setPlanFilter] = useState('all');
     const dispatch = useDispatch();
   const { list, listLoading } = useSelector((state) => state.gym);
+  const { stats, statsLoading } = useSelector((state) => state.gym);
+  console.log(stats,"stats");
+  
+
+  
 
 
   useEffect(() => {
@@ -28,6 +33,7 @@ const Gyms = () => {
 const statusColors = {
   Active: "bg-green-100 text-green-700",
   Trial: "bg-amber-100 text-amber-700",
+  Inactive:"bg-grey-100 text-white-700",
   Suspended: "bg-red-100 text-red-700",
 };
 
@@ -73,7 +79,7 @@ const statusColors = {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
           <p className="text-sm text-slate-600 mb-1">Total Gyms</p>
-          <p className="text-2xl font-semibold text-slate-900">344</p>
+          <p className="text-2xl font-semibold text-slate-900">{list.length}</p>
         </div>
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
           <p className="text-sm text-slate-600 mb-1">Active Gyms</p>
@@ -108,6 +114,7 @@ const statusColors = {
             className="h-10 px-3 pr-10 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 min-w-[140px]"
           >
             <option value="all">All Status</option>
+            <option value="inactive">Inactive</option>
             <option value="active">Active</option>
             <option value="trial">Trial</option>
             <option value="suspended">Suspended</option>
