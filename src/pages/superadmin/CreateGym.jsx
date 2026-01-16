@@ -22,7 +22,7 @@ const CreateGym = () => {
 
   const [ownerForm, setOwnerForm] = useState({
     owner_firstName: "",
-    owner_LastName: "",
+    owner_lastName: "",
     owner_email: "",
     owner_phone: "",
   });
@@ -221,7 +221,7 @@ const CreateGym = () => {
                     onChange={(e) =>
                       setOwnerForm({
                         ...ownerForm,
-                        owner_firstName: e.target.value,
+                        owner_lastName: e.target.value,
                       })
                     }
                   />

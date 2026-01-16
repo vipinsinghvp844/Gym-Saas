@@ -1,41 +1,69 @@
-import { Plus, Download, Search, Filter, ArrowUpDown, Eye, Edit, CreditCard, XCircle, CheckCircle, MoreVertical } from 'lucide-react';
+import { Plus, Download, Search, Eye, CreditCard, Edit, XCircle } from 'lucide-react';
 import { useState } from 'react';
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import PageHeader from "../../components/ui/PageHeader";
 import GymLoader from "../../components/ui/GymLoader";
-import { fetchGyms, updateGymStatus } from "../../../redux/actions/gymAction";
+import { fetchGyms, fetchGymStats, updateGymStatus, bulkUpdateGymStatus, bulkDeleteGyms } from "../../../redux/actions/gymAction";
+import GlobalPreviewModal from "../../components/ui/GlobalPreviewModal";
+import AssignPlanModal from "../../components/ui/AssignPlanModal";
+import AssignAdminModal from "../../components/ui/AssignAdminModal";
+import toast from 'react-hot-toast';
+import ConfirmationModal from '../../components/ui/ConfirmationModal';
+
 
 const Gyms = () => {
   const [selectedGyms, setSelectedGyms] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [planFilter, setPlanFilter] = useState('all');
-    const dispatch = useDispatch();
+  const dispatch = useDispatch();
   const { list, listLoading } = useSelector((state) => state.gym);
   const { stats, statsLoading } = useSelector((state) => state.gym);
-  console.log(stats,"stats");
-  
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewType, setPreviewType] = useState("gym");
+  const [previewData, setPreviewData] = useState(null);
+  const [assignOpen, setAssignOpen] = useState(false);
+  const [selectedGym, setSelectedGym] = useState(null);
+  const [assignAdminOpen, setAssignAdminOpen] = useState(false);
+  const [assignGym, setAssignGym] = useState(null);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleteIds, setDeleteIds] = useState([]);
 
-  
+
 
 
   useEffect(() => {
-    dispatch(fetchGyms());
+    dispatch(fetchGyms({ search: "", status: "all", plan: "all" }));
+    dispatch(fetchGymStats());
   }, [dispatch]);
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      dispatch(
+        fetchGyms({
+          search: searchTerm,
+          status: statusFilter,
+          plan: planFilter,
+        })
+      );
+    }, 1000); // debounce
+
+    return () => clearTimeout(timer);
+  }, [searchTerm, statusFilter, planFilter, dispatch]);
+
 
   const planColors = {
-  Basic: "bg-blue-100 text-blue-700",
-  Pro: "bg-purple-100 text-purple-700",
-  Enterprise: "bg-indigo-100 text-indigo-700",
-};
+    basic: "bg-blue-100 text-blue-700",
+    pro: "bg-purple-100 text-purple-700",
+    enterprise: "bg-indigo-100 text-indigo-700",
+    free: "bg-slate-100 text-slate-700",
+  };
 
-const statusColors = {
-  Active: "bg-green-100 text-green-700",
-  Trial: "bg-amber-100 text-amber-700",
-  Inactive:"bg-grey-100 text-white-700",
-  Suspended: "bg-red-100 text-red-700",
-};
+  const statusColors = {
+    active: "bg-green-100 text-green-700",
+    trial: "bg-amber-100 text-amber-700",
+    inactive: "bg-gray-100 text-gray-700",
+    suspended: "bg-red-100 text-red-700",
+  };
 
   const handleSelectAll = () => {
     if (selectedGyms.length === list.length) {
@@ -51,6 +79,12 @@ const statusColors = {
     } else {
       setSelectedGyms([...selectedGyms, id]);
     }
+  };
+
+  // hande delete function gym
+  const handleDeleteGym = () => {
+    console.log("Delete gym id:", selectedGym?.id);
+    dispatch(bulkDeleteGyms([selectedGym?.id]))
   };
 
   return (
@@ -79,19 +113,19 @@ const statusColors = {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
           <p className="text-sm text-slate-600 mb-1">Total Gyms</p>
-          <p className="text-2xl font-semibold text-slate-900">{list.length}</p>
+          <p className="text-2xl font-semibold text-slate-900">{statsLoading ? "Loading..." : stats.total}</p>
         </div>
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
           <p className="text-sm text-slate-600 mb-1">Active Gyms</p>
-          <p className="text-2xl font-semibold text-slate-900">234</p>
+          <p className="text-2xl font-semibold text-slate-900">{statsLoading ? "Loading..." : stats.active}</p>
         </div>
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
           <p className="text-sm text-slate-600 mb-1">Trial Gyms</p>
-          <p className="text-2xl font-semibold text-slate-900">87</p>
+          <p className="text-2xl font-semibold text-slate-900">{statsLoading ? "Loading..." : stats.trial}</p>
         </div>
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
           <p className="text-sm text-slate-600 mb-1">Suspended Gyms</p>
-          <p className="text-2xl font-semibold text-slate-900">23</p>
+          <p className="text-2xl font-semibold text-slate-900">{statsLoading ? "Loading..." : stats.suspended}</p>
         </div>
       </div>
 
@@ -139,12 +173,31 @@ const statusColors = {
           <div className="px-6 py-3 bg-indigo-50 border-b border-indigo-100 flex items-center justify-between">
             <p className="text-sm font-medium text-indigo-900">{selectedGyms.length} selected</p>
             <div className="flex gap-2">
-              <button className="px-3 py-1.5 bg-white border border-indigo-200 rounded-lg text-sm font-medium text-indigo-700 hover:bg-indigo-50">
-                Assign Plan
+              <button
+                onClick={() => {
+                  dispatch(
+                    bulkUpdateGymStatus(selectedGyms, "suspended", {
+                      search: searchTerm,
+                      status: statusFilter,
+                      plan: planFilter,
+                    })
+                  );
+                  setSelectedGyms([]);
+                }}
+                className="px-3 py-1.5 bg-white border border-indigo-200 rounded-lg text-sm font-medium text-indigo-700 hover:bg-indigo-50">
+                Suspend
               </button>
-              <button className="px-3 py-1.5 bg-white border border-red-200 rounded-lg text-sm font-medium text-red-700 hover:bg-red-50">
+              <button
+                onClick={() => {
+                  if (selectedGyms.length === 0) return;
+                  setDeleteIds(selectedGyms);
+                  setDeleteOpen(true);
+                }}
+
+                className="px-3 py-1.5 bg-white border border-red-200 rounded-lg text-sm font-medium text-red-700 hover:bg-red-50">
                 Delete
               </button>
+
             </div>
           </div>
         )}
@@ -155,7 +208,7 @@ const statusColors = {
                 <th className="px-6 py-3 text-left">
                   <input
                     type="checkbox"
-                    checked={selectedGyms.length === list.length}
+                    checked={list.length > 0 && selectedGyms.length === list.length}
                     onChange={handleSelectAll}
                     className="w-4 h-4 rounded border-slate-300 text-indigo-600"
                   />
@@ -172,13 +225,14 @@ const statusColors = {
             <tbody className="divide-y divide-slate-200">
               {listLoading && (
                 <tr>
-                    <td colSpan="7" className="py-10">
-                      <div className="flex justify-center">
-                        <GymLoader label="Loading requests..." />
-                      </div>
-                    </td>
-                  </tr>
+                  <td colSpan="7" className="py-10">
+                    <div className="flex justify-center">
+                      <GymLoader label="Loading requests..." />
+                    </div>
+                  </td>
+                </tr>
               )}
+
               {list?.map((gym) => (
                 <tr key={gym.id} className="hover:bg-slate-50">
                   <td className="px-6 py-4">
@@ -191,8 +245,16 @@ const statusColors = {
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-semibold text-sm">
-                        <img src={`http://localhost/GymsBackend/${gym?.logo}`} alt="Gym Logo" />
+                      <div className="w-10 h-10 rounded-lg overflow-hidden bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-semibold text-sm">
+                        {gym?.logo ? (
+                          <img
+                            src={`http://localhost/GymsBackend/${gym.logo}`}
+                            alt="Gym Logo"
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          gym?.name?.slice(0, 2)?.toUpperCase()
+                        )}
                       </div>
                       <p className="text-sm font-semibold text-slate-900">{gym.name}</p>
                     </div>
@@ -219,17 +281,43 @@ const statusColors = {
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-1">
-                      <button className="p-2 rounded-lg hover:bg-slate-100 text-slate-600 hover:text-indigo-600">
+                      <button
+                        onClick={() => {
+                          setPreviewType("gym");
+                          setPreviewData(gym);
+                          setPreviewOpen(true);
+                        }}
+                        className="p-2 rounded-lg hover:bg-slate-100 text-slate-600 hover:text-indigo-600"
+                      >
                         <Eye className="w-4 h-4" />
                       </button>
-                      <button className="p-2 rounded-lg hover:bg-slate-100 text-slate-600 hover:text-indigo-600">
-                        <Edit className="w-4 h-4" />
-                      </button>
-                      <button className="p-2 rounded-lg hover:bg-slate-100 text-slate-600 hover:text-indigo-600">
+                      <button
+                        className="p-2 rounded-lg hover:bg-slate-100 text-slate-600 hover:text-indigo-600"
+                        onClick={() => {
+                          setSelectedGym(gym);
+                          setAssignOpen(true);
+                        }}
+                      >
                         <CreditCard className="w-4 h-4" />
                       </button>
-                      <button className="p-2 rounded-lg hover:bg-slate-100 text-slate-600 hover:text-slate-900">
-                        <MoreVertical className="w-4 h-4" />
+                      <button
+                        onClick={() => {
+                          setAssignGym(gym);
+                          setAssignAdminOpen(true);
+                        }}
+                        className="p-2 rounded-lg hover:bg-slate-100 text-slate-600 hover:text-indigo-600"
+                      >
+                        <Edit className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => {
+                          setDeleteIds([gym.id]);
+                          setDeleteOpen(true);
+                        }}
+
+                        className="p-2 rounded-lg hover:bg-red-50 text-red-600"
+                      >
+                        <XCircle className="w-4 h-4" />
                       </button>
                     </div>
                   </td>
@@ -253,6 +341,58 @@ const statusColors = {
           </div>
         </div>
       </div>
+      <GlobalPreviewModal
+        isOpen={previewOpen}
+        onClose={() => setPreviewOpen(false)}
+        type={previewType}
+        data={previewData}
+      />
+      <AssignPlanModal
+        isOpen={assignOpen}
+        onClose={() => setAssignOpen(false)}
+        gymName={selectedGym?.name}
+        onAssign={(planId) => {
+          console.log("Assign plan:", planId, "to gym:", selectedGym?.id);
+          // yaha API call karna: dispatch(assignPlan(selectedGym.id, planId))
+        }}
+      />
+      <AssignAdminModal
+        isOpen={assignAdminOpen}
+        onClose={() => {
+          setAssignAdminOpen(false);
+          setAssignGym(null);
+        }}
+        gymName={assignGym?.name || ""}
+        onAssign={(adminId) => {
+          console.log("Assign admin:", adminId, "to gym:", assignGym?.id);
+
+          // ✅ yaha API hit karenge assign admin wali
+          // dispatch(assignGymAdmin(assignGym.id, adminId))
+
+          toast.success("Admin assigned successfully");
+        }}
+      />
+      <ConfirmationModal
+        isOpen={deleteOpen}
+        onClose={() => setDeleteOpen(false)}
+        type="danger"
+        title="Delete gyms?"
+        message={`Are you sure you want to delete ${deleteIds.length} gym(s)? This action cannot be undone.`}
+        confirmText="Yes, Delete"
+        cancelText="Cancel"
+        onConfirm={() => {
+          dispatch(
+            bulkDeleteGyms(deleteIds, {
+              search: searchTerm,
+              status: statusFilter,
+              plan: planFilter,
+            })
+          );
+          setSelectedGyms([]);
+          setDeleteIds([]);
+        }}
+      />
+
     </div>
   );
 }

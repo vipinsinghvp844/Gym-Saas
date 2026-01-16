@@ -1,7 +1,8 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "http://localhost/GymsBackend",
+  // baseURL: "http://localhost/GymsBackend",
+  baseURL: "https://hireaiexpert.com/saas-backend",
   withCredentials: false, // true tabhi jab cookies use ho
 });
 

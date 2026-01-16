@@ -88,6 +88,9 @@ function App() {
         >
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="gyms" element={<Gyms />} />
+          <Route path="gyms/:id" element={<Gyms />} />
+          <Route path="gyms/:id/edit" element={<Gyms />} />
+          <Route path="gyms/:id/billing" element={<Gyms />} />
           <Route path="create-gym" element={<CreateGym />} />
           <Route path="requests" element={<Requests />} />
           <Route path="templates" element={<Templates />} />

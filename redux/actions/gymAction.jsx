@@ -18,11 +18,15 @@ import {
 /* =========================
    Fetch GYMs (SUPER ADMIN)
 ========================= */
-export const fetchGyms = () => async (dispatch) => {
+export const fetchGyms = (filters = {}) => async (dispatch) => {
   try {
     dispatch(fetchGymsStart());
-
-    const res = await api.get("/gyms/list.php");
+     const params = {
+      search: filters.search || "",
+      status: filters.status || "all",
+      plan: filters.plan || "all",
+    };
+    const res = await api.get("/gyms/list.php",{params});
 
     dispatch(fetchGymsSuccess(res.data.data || []));
   } catch (err) {
@@ -39,8 +43,6 @@ export const fetchGymStats = () => async (dispatch) => {
     dispatch(fetchStatsStart());
 
     const res = await api.get("/gyms/stats.php");
-    console.log(res,"res");
-    
 
     if (!res.data.status) {
       dispatch(fetchStatsFail("Failed to load stats"));
@@ -112,3 +114,49 @@ export const updateGymStatus = (gym_id, currentStatus) => async (dispatch) => {
   }
 }
 
+/*============================
+  Bulk Status Change and single
+==============================*/
+
+export const bulkUpdateGymStatus = (gym_ids, status, filters) => async (dispatch) => {
+  try {
+    const res = await api.post("/gyms/bulk-status.php", {
+      gym_ids,
+      status,
+    });
+
+    if (!res.data.status) {
+      toast.error(res.data.message || "Bulk update failed");
+      return;
+    }
+
+    toast.success("Status updated");
+    dispatch(fetchGyms(filters));
+    dispatch(fetchGymStats(filters));
+  } catch (err) {
+    toast.error("Server error");
+  }
+};
+
+/*============================
+  Bulk delete gym, user and single
+==============================*/
+
+export const bulkDeleteGyms = (gym_ids, filters) => async (dispatch) => {
+  try {
+    const res = await api.post("/gyms/bulk-delete.php", {
+      gym_ids,
+    });
+
+    if (!res.data.status) {
+      toast.error(res.data.message || "Delete failed");
+      return;
+    }
+
+    toast.success("Gyms deleted");
+    dispatch(fetchGyms(filters));
+    dispatch(fetchGymStats(filters));
+  } catch (err) {
+    toast.error("Server error");
+  }
+};
