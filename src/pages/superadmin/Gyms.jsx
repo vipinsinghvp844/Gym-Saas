@@ -9,6 +9,7 @@ import AssignPlanModal from "../../components/ui/AssignPlanModal";
 import AssignAdminModal from "../../components/ui/AssignAdminModal";
 import toast from 'react-hot-toast';
 import ConfirmationModal from '../../components/ui/ConfirmationModal';
+import api from '../../services/api';
 
 
 const Gyms = () => {
@@ -29,6 +30,34 @@ const Gyms = () => {
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleteIds, setDeleteIds] = useState([]);
 
+  const handleAssignPlan = async (planId) => {
+    if (!selectedGym?.id) return;
+
+    try {
+      await api.post("/gym-subscriptions/assign.php", {
+        gym_id: selectedGym.id,
+        plan_id: planId,
+      });
+
+      toast.success("Plan assigned successfully ✅");
+
+      setAssignOpen(false);
+      setSelectedGym(null);
+
+      // ✅ refresh list + stats
+      dispatch(
+        fetchGyms({
+          search: searchTerm,
+          status: statusFilter,
+          plan: planFilter,
+        })
+      );
+      dispatch(fetchGymStats());
+    } catch (err) {
+      console.error(err);
+      toast.error(err?.response?.data?.message || "Failed to assign plan");
+    }
+  };
 
 
 
@@ -264,10 +293,28 @@ const Gyms = () => {
                     <p className="text-xs text-slate-500">{gym.ownerEmail}</p>
                   </td>
                   <td className="px-6 py-4">
-                    <span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-semibold ${planColors[gym.plan]}`}>
-                      {gym.plan}
-                    </span>
+                    {gym.current_plan_slug ? (
+                      <div className="space-y-1">
+                        <span
+                          className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-semibold ${planColors[gym.current_plan_slug] || "bg-slate-100 text-slate-700"
+                            }`}
+                        >
+                          {gym.current_plan_slug}
+                        </span>
+
+                        {gym.current_plan_name && (
+                          <p className="text-xs text-slate-500">
+                            {gym.current_plan_name} • ₹{gym.current_plan_price}/{gym.current_plan_cycle}
+                          </p>
+                        )}
+                      </div>
+                    ) : (
+                      <span className="inline-flex px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-700">
+                        No Plan
+                      </span>
+                    )}
                   </td>
+
                   <td className="px-6 py-4">
                     <span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-semibold ${statusColors[gym.status]}`}>
                       {gym.status}
@@ -349,13 +396,15 @@ const Gyms = () => {
       />
       <AssignPlanModal
         isOpen={assignOpen}
-        onClose={() => setAssignOpen(false)}
-        gymName={selectedGym?.name}
-        onAssign={(planId) => {
-          console.log("Assign plan:", planId, "to gym:", selectedGym?.id);
-          // yaha API call karna: dispatch(assignPlan(selectedGym.id, planId))
+        onClose={() => {
+          setAssignOpen(false);
+          setSelectedGym(null);
         }}
+        gymName={selectedGym?.name}
+        currentPlanId={selectedGym?.current_plan_id || ""}
+        onAssign={handleAssignPlan}
       />
+
       <AssignAdminModal
         isOpen={assignAdminOpen}
         onClose={() => {

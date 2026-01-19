@@ -1,113 +1,138 @@
-import { X } from "lucide-react";
 import { useEffect, useState } from "react";
+import api from "../../services/api";
+import { X, Loader2 } from "lucide-react";
 
-const AssignPlanModal = ({ isOpen, onClose, onAssign, gymName }) => {
-  const [selectedPlan, setSelectedPlan] = useState("");
+const AssignPlanModal = ({
+  isOpen,
+  onClose,
+  gymName,
+  onAssign,
+  currentPlanId = "",
+}) => {
+  const [plans, setPlans] = useState([]);
+  const [loadingPlans, setLoadingPlans] = useState(false);
+  const [selectedPlanId, setSelectedPlanId] = useState(currentPlanId || "");
+  const [assigning, setAssigning] = useState(false);
 
   useEffect(() => {
     if (!isOpen) return;
 
-    // reset on open (optional)
-    setSelectedPlan("");
+    setSelectedPlanId(currentPlanId || "");
 
-    const onKeyDown = (e) => {
-      if (e.key === "Escape") onClose?.();
+    const loadPlans = async () => {
+      try {
+        setLoadingPlans(true);
+        const res = await api.get("/billing/plans/list.php");
+        setPlans(res.data.data || []);
+      } catch (err) {
+        console.error(err);
+        setPlans([]);
+      } finally {
+        setLoadingPlans(false);
+      }
     };
 
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, [isOpen, onClose]);
+    loadPlans();
+  }, [isOpen, currentPlanId]);
 
   if (!isOpen) return null;
 
-  const plans = [
-    { id: "free", name: "Free", price: "$0", description: "Up to 50 members, basic features" },
-    { id: "basic", name: "Basic", price: "$49", description: "Up to 200 members, advanced reporting" },
-    { id: "pro", name: "Pro", price: "$99", description: "Up to 1000 members, advanced analytics" },
-    { id: "enterprise", name: "Enterprise", price: "$299", description: "Unlimited members, white-label" },
-  ];
+  const submit = async () => {
+    if (!selectedPlanId) return alert("Please select a plan");
 
-  const handleAssign = () => {
-    if (!selectedPlan) return;
-    onAssign?.(selectedPlan);
-    onClose?.();
+    try {
+      setAssigning(true);
+      await onAssign(selectedPlanId);
+    } finally {
+      setAssigning(false);
+    }
   };
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
-      onMouseDown={(e) => {
-        // ✅ outside click close
-        if (e.target === e.currentTarget) onClose?.();
-      }}
-    >
-      <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-hidden flex flex-col">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40">
+      <div className="w-full max-w-lg bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200">
+        <div className="px-5 py-4 border-b border-slate-200 flex items-center justify-between">
           <div>
-            <h2 className="text-lg font-semibold text-slate-900">Assign Plan</h2>
-            <p className="text-sm text-slate-500 mt-1">{gymName || ""}</p>
+            <h3 className="text-base font-semibold text-slate-900">
+              Assign Plan
+            </h3>
+            <p className="text-sm text-slate-500">
+              Gym:{" "}
+              <span className="font-semibold text-slate-900">{gymName}</span>
+            </p>
           </div>
+
           <button
-            type="button"
             onClick={onClose}
-            className="p-2 rounded-lg hover:bg-slate-100 text-slate-600 transition-colors"
+            className="p-2 rounded-lg hover:bg-slate-100"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4 text-slate-600" />
           </button>
         </div>
 
-        {/* Content */}
-        <div className="flex-1 overflow-y-auto p-6">
-          <div className="space-y-3">
-            {plans.map((plan) => (
-              <button
-                key={plan.id}
-                type="button"
-                onClick={() => setSelectedPlan(plan.id)}
-                className={`w-full p-4 rounded-lg border-2 transition-all text-left ${
-                  selectedPlan === plan.id
-                    ? "border-indigo-600 bg-indigo-50"
-                    : "border-slate-200 hover:border-slate-300"
-                }`}
-              >
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <p className="text-base font-semibold text-slate-900">{plan.name}</p>
-                      <p className="text-lg font-bold text-slate-900">{plan.price}/mo</p>
-                    </div>
-                    <p className="text-sm text-slate-600">{plan.description}</p>
-                  </div>
+        {/* Body */}
+        <div className="p-5 space-y-4">
+          <div>
+            <label className="block text-xs font-semibold text-slate-600 mb-1">
+              Select Plan
+            </label>
 
-                  {selectedPlan === plan.id && (
-                    <div className="w-5 h-5 rounded-full bg-indigo-600 flex items-center justify-center flex-shrink-0 ml-3">
-                      <Check className="w-3 h-3 text-white" />
-                    </div>
-                  )}
-                </div>
-              </button>
-            ))}
+            <select
+              value={selectedPlanId}
+              onChange={(e) => setSelectedPlanId(e.target.value)}
+              className="w-full h-11 px-3 rounded-xl border border-slate-200 text-sm outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+            >
+              <option value="">-- Choose plan --</option>
+
+              {loadingPlans ? (
+                <option value="">Loading plans...</option>
+              ) : (
+                plans.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name} (₹{p.price}/{p.billing_cycle})
+                  </option>
+                ))
+              )}
+            </select>
+          </div>
+
+          <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+            <p className="text-sm font-semibold text-slate-900">
+              Note ✅
+            </p>
+            <p className="text-sm text-slate-600 mt-1">
+              Previous active subscription will be closed automatically.
+            </p>
           </div>
         </div>
 
         {/* Footer */}
-        <div className="flex gap-3 px-6 py-4 border-t border-slate-200">
+        <div className="px-5 py-4 border-t border-slate-200 flex items-center justify-end gap-2">
           <button
-            type="button"
             onClick={onClose}
-            className="flex-1 h-10 px-4 bg-slate-100 text-slate-700 rounded-lg text-sm font-medium hover:bg-slate-200"
+            className="h-10 px-4 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-sm font-medium"
           >
             Cancel
           </button>
 
           <button
-            type="button"
-            onClick={handleAssign}
-            disabled={!selectedPlan}
-            className="flex-1 h-10 px-4 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            onClick={submit}
+            disabled={assigning}
+            className={`h-10 px-4 rounded-xl text-sm font-medium ${
+              assigning
+                ? "bg-indigo-300 text-white cursor-not-allowed"
+                : "bg-indigo-600 text-white hover:bg-indigo-700"
+            }`}
           >
-            Assign Plan
+            {assigning ? (
+              <span className="inline-flex items-center gap-2">
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Assigning...
+              </span>
+            ) : (
+              "Assign Plan"
+            )}
           </button>
         </div>
       </div>

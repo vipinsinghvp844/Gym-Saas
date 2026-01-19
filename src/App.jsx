@@ -51,6 +51,9 @@ import GymAdminLayout from "./layouts/GymAdminLayout";
 import PageRenderer from "./website/PageRenderer";
 import GymPageRenderer from "./website/GymPageRenderer";
 import Integrations from "./pages/superadmin/Integrations";
+import EditTemplate from "./pages/superadmin/EmailTemplates";
+import CreatePlan from "./pages/superadmin/CreatePlan";
+import EditPlan from "./pages/superadmin/EditPlan";
 
 
 
@@ -61,7 +64,8 @@ function App() {
         {/* =======================
             PUBLIC
         ======================= */}
-        <Route path="/" element={<Login />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/" element={<PageRenderer />} />
 
         {/* =======================
             CHANGE PASSWORD
@@ -95,10 +99,13 @@ function App() {
           <Route path="requests" element={<Requests />} />
           <Route path="templates" element={<Templates />} />
           <Route path="templates/create" element={<CreateTemplate />} />
+          <Route path="templates/edit/:id" element={<EditTemplate />} />
           <Route path="pages" element={<Pages />} />
           <Route path="create-page" element={<CreatePage />} />
           <Route path="gym-plans" element={<GymPlans /> } />
           <Route path="billing/plans" element={<Plans/> } />
+          <Route path="billing/plans/create" element={<CreatePlan/> } />
+          <Route path="billing/plans/edit/:id" element={<EditPlan/> } />
           <Route path="billing/subscriptions" element={<Subscriptions/> } />
           <Route path="billing/payments" element={<Payments/> } />
           <Route path="billing/invoices" element={<Invoices/> } />
