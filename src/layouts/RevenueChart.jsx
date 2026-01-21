@@ -8,22 +8,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-const data = [
-  { month: "Jan", revenue: 45000 },
-  { month: "Feb", revenue: 52000 },
-  { month: "Mar", revenue: 48000 },
-  { month: "Apr", revenue: 61000 },
-  { month: "May", revenue: 68000 },
-  { month: "Jun", revenue: 75000 },
-  { month: "Jul", revenue: 82000 },
-  { month: "Aug", revenue: 79000 },
-  { month: "Sep", revenue: 91000 },
-  { month: "Oct", revenue: 98000 },
-  { month: "Nov", revenue: 105000 },
-  { month: "Dec", revenue: 112000 },
-];
-
-const RevenueChart = () => {
+const RevenueChart = ({ data = [] }) => {
   return (
     <div className="bg-white rounded-xl border border-slate-200 shadow-sm">
       <div className="p-6 border-b border-slate-100">
@@ -51,7 +36,7 @@ const RevenueChart = () => {
               stroke="#64748b"
               fontSize={12}
               tickLine={false}
-              tickFormatter={(value) => `$${value / 1000}k`}
+              tickFormatter={(value) => `₹${Math.round(value / 1000)}k`}
             />
 
             <Tooltip
@@ -61,10 +46,12 @@ const RevenueChart = () => {
                 borderRadius: "8px",
                 fontSize: "12px",
               }}
-              formatter={(value) => [
-                `$${value.toLocaleString()}`,
-                "Revenue",
-              ]}
+              formatter={(value) => [`₹${Number(value).toLocaleString()}`, "Revenue"]}
+              labelFormatter={(label, payload) => {
+                const row = payload?.[0]?.payload;
+                if (row?.year) return `${label} ${row.year}`;
+                return label;
+              }}
             />
 
             <Line
@@ -77,6 +64,12 @@ const RevenueChart = () => {
             />
           </LineChart>
         </ResponsiveContainer>
+
+        {(!data || data.length === 0) && (
+          <p className="text-sm text-slate-500 mt-4 text-center">
+            No revenue data available yet.
+          </p>
+        )}
       </div>
     </div>
   );

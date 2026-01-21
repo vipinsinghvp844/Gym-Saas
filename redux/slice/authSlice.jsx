@@ -4,8 +4,8 @@ const initialState = {
   token: localStorage.getItem("token") || null,
   user: null,
   role: localStorage.getItem("role") || null,
-  forcePasswordChange:
-    Number(localStorage.getItem("force_password_change")) || 0,
+  forcePasswordChange: Number(localStorage.getItem("force_password_change")) || 0,
+  gym: localStorage.getItem("gym") ? JSON.parse(localStorage.getItem("gym")) : null,
   loading: false,
   error: null,
 };
@@ -26,12 +26,15 @@ const authSlice = createSlice({
       state.role = payload.user.role;
       state.forcePasswordChange = payload.user.force_password_change;
 
+      // ✅ gym store
+      state.gym = payload.gym || null;
+
       localStorage.setItem("token", payload.token);
       localStorage.setItem("role", payload.user.role);
-      localStorage.setItem(
-        "force_password_change",
-        payload.user.force_password_change
-      );
+      localStorage.setItem("force_password_change", payload.user.force_password_change);
+
+      // ✅ store gym data
+      localStorage.setItem("gym", JSON.stringify(payload.gym || null));
     },
 
     loginFail: (state, { payload }) => {
@@ -44,17 +47,12 @@ const authSlice = createSlice({
       state.user = null;
       state.role = null;
       state.forcePasswordChange = 0;
+      state.gym = null;
 
       localStorage.clear();
     },
   },
 });
 
-export const {
-  loginStart,
-  loginSuccess,
-  loginFail,
-  logout,
-} = authSlice.actions;
-
+export const { loginStart, loginSuccess, loginFail, logout } = authSlice.actions;
 export default authSlice.reducer;

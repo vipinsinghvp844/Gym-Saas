@@ -21,6 +21,8 @@ const statusBadge = {
 };
 
 const GlobalPreviewModal = ({ isOpen, onClose, type = "gym", data }) => {
+  console.log(data,"data");
+  
   useEffect(() => {
     if (!isOpen) return;
 
@@ -51,7 +53,7 @@ const GlobalPreviewModal = ({ isOpen, onClose, type = "gym", data }) => {
       case "gym": {
         const gymName = data?.name || "Gym Name";
         const gymStatus = (data?.status || "active").toLowerCase();
-        const gymPlan = (data?.plan || "free").toLowerCase();
+        const gymPlan = (data?.plan_name || "free").toLowerCase();
 
         return (
           <div className="space-y-6">

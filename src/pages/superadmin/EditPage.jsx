@@ -1,57 +1,63 @@
-import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import api from "../../services/api";
 import PageHeader from "../../components/ui/PageHeader";
+import GymLoader from "../../components/ui/GymLoader";
+import { Save, Loader2, Eye, ArrowLeft } from "lucide-react";
 
-const normalizeValue = (value, field) => {
-  if (field === "items") {
-    if (Array.isArray(value)) return value;
-    if (typeof value === "string")
-      return value.split(",").map((v) => v.trim());
-    return [];
+const isValidJsonArray = (value) => {
+  try {
+    const parsed = JSON.parse(value);
+    return Array.isArray(parsed);
+  } catch {
+    return false;
   }
-  return value || "";
 };
 
 const EditPage = () => {
   const { id } = useParams();
-  const [structure, setStructure] = useState(null);
+  const navigate = useNavigate();
+
+  const [page, setPage] = useState(null);
+  const [structure, setStructure] = useState({ sections: [] });
   const [pageData, setPageData] = useState({});
+
+  const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     loadPage();
-  }, []);
+    // eslint-disable-next-line
+  }, [id]);
 
   const loadPage = async () => {
-    const res = await api.get(`/pages/get.php?id=${id}`);
-    const page = res.data.data;
+    try {
+      setLoading(true);
+      const res = await api.get(`/pages/get-one.php?id=${id}`);
+      const row = res.data.data;
 
-    const struct = JSON.parse(page.structure_json);
-    const data = JSON.parse(page.page_data_json || "{}");
+      setPage(row);
 
-    const normalized = {};
+      const struct = JSON.parse(row.structure_json || "{}");
+      const data = JSON.parse(row.page_data_json || "{}");
 
-    struct.sections.forEach((sec) => {
-      normalized[sec.type] = {};
-
-      Object.keys(sec.data).forEach((field) => {
-        normalized[sec.type][field] = normalizeValue(
-          data?.[sec.type]?.[field],
-          field
-        );
-      });
-    });
-
-    setStructure(struct);
-    setPageData(normalized);
+      setStructure(struct?.sections ? struct : { sections: [] });
+      setPageData(data || {});
+    } catch (err) {
+      console.error(err);
+      alert(err?.response?.data?.message || "Failed to load page");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const updateField = (section, field, value) => {
+  const sections = useMemo(() => structure?.sections || [], [structure]);
+
+  const updateField = (sectionId, field, value) => {
     setPageData((prev) => ({
       ...prev,
-      [section]: {
-        ...prev[section],
+      [sectionId]: {
+        ...(prev[sectionId] || {}),
         [field]: value,
       },
     }));
@@ -59,109 +65,217 @@ const EditPage = () => {
 
   const save = async () => {
     try {
+      // ✅ validate json fields before save
+      for (const s of sections) {
+        const sid = s.id || s.type;
+        const data = pageData[sid] || {};
+
+        // json fields by type
+        if (s.type === "features" && data.items && !isValidJsonArray(data.items)) {
+          alert(`Invalid JSON in Features items`);
+          return;
+        }
+
+        if (s.type === "pricing" && data.plans && !isValidJsonArray(data.plans)) {
+          alert(`Invalid JSON in Pricing plans`);
+          return;
+        }
+
+        if (s.type === "testimonials" && data.items && !isValidJsonArray(data.items)) {
+          alert(`Invalid JSON in Testimonials items`);
+          return;
+        }
+
+        if (s.type === "gallery" && data.images && !isValidJsonArray(data.images)) {
+          alert(`Invalid JSON in Gallery images`);
+          return;
+        }
+      }
+
       setSaving(true);
-      await api.post("/pages/update-content.php", {
-        page_id: id,
-        page_data: pageData,
+
+      await api.post("/pages/update.php", {
+        id: Number(id),
+        page_data_json: pageData,
       });
-      alert("Page updated successfully");
+
+      alert("Page updated ✅");
+    } catch (err) {
+      console.error(err);
+      alert(err?.response?.data?.message || "Save failed");
     } finally {
       setSaving(false);
     }
   };
 
-  if (!structure) {
+  const openPreview = () => {
+    if (!page?.slug) return;
+    window.open(`/p/${page.slug}`, "_blank");
+  };
+
+  if (loading) {
     return (
-      <div className="p-6 text-gray-500">Loading page editor…</div>
+      <div className="p-10 flex justify-center">
+        <GymLoader label="Loading page..." />
+      </div>
+    );
+  }
+
+  if (!page) {
+    return (
+      <div className="p-6">
+        <p className="text-sm text-slate-500">Page not found.</p>
+      </div>
     );
   }
 
   return (
-    <div className="max-w-5xl mx-auto px-6 py-6 space-y-6 bg-white">
+    <div className="space-y-6 p-5">
+      <div className="flex items-start justify-between gap-3">
+        <PageHeader
+          title={`Edit Page: /${page.slug}`}
+          subtitle={`Template: ${page.template_name || "-"} (ID: ${page.template_id})`}
+        />
 
-      <PageHeader
-        title="Edit Page Content"
-        subtitle="Update sections and content for this page"
-      />
-
-      {/* SECTIONS */}
-      <div className="space-y-6">
-        {structure.sections.map((sec, index) => (
-          <div
-            key={sec.type}
-            className="border border-gray-200 rounded-xl bg-gray-50 p-5"
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => navigate("/superadmin/pages")}
+            className="h-10 px-4 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-sm font-medium flex items-center gap-2"
           >
-            {/* SECTION HEADER */}
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-semibold text-gray-900 uppercase">
-                {index + 1}. {sec.type}
-              </h3>
-            </div>
+            <ArrowLeft className="w-4 h-4" />
+            Back
+          </button>
 
-            {/* SECTION FIELDS */}
-            <div className="space-y-4">
-              {Object.keys(sec.data).map((field) => {
-                // LIST FIELD
-                if (field === "items") {
-                  return (
-                    <div key={field}>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">
-                        {field}
-                      </label>
-                      <textarea
-                        rows={4}
-                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
-                        placeholder="One item per line"
-                        value={(pageData[sec.type]?.items || []).join("\n")}
-                        onChange={(e) =>
-                          updateField(
-                            sec.type,
-                            "items",
-                            e.target.value
-                              .split("\n")
-                              .map((v) => v.trim())
-                              .filter(Boolean)
-                          )
-                        }
-                      />
-                      <p className="text-xs text-gray-400 mt-1">
-                        Enter one item per line
-                      </p>
-                    </div>
-                  );
-                }
+          <button
+            onClick={openPreview}
+            className="h-10 px-4 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-sm font-medium flex items-center gap-2"
+          >
+            <Eye className="w-4 h-4" />
+            Preview
+          </button>
 
-                // NORMAL FIELD
-                return (
-                  <div key={field}>
-                    <label className="block text-xs font-medium text-gray-600 mb-1">
-                      {field}
-                    </label>
-                    <input
-                      className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
-                      placeholder={`${sec.type} ${field}`}
-                      value={pageData[sec.type]?.[field] || ""}
-                      onChange={(e) =>
-                        updateField(sec.type, field, e.target.value)
-                      }
-                    />
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        ))}
+          <button
+            onClick={save}
+            disabled={saving}
+            className={`h-10 px-4 rounded-xl text-sm font-semibold flex items-center gap-2 ${
+              saving
+                ? "bg-indigo-300 text-white cursor-not-allowed"
+                : "bg-indigo-600 text-white hover:bg-indigo-700"
+            }`}
+          >
+            {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+            {saving ? "Saving..." : "Save Changes"}
+          </button>
+        </div>
       </div>
 
-      {/* SAVE BAR */}
-      <div className="flex justify-end pt-4 border-t border-gray-200">
-        <button
-          onClick={save}
-          disabled={saving}
-          className="px-6 py-2 rounded-md bg-indigo-600 text-white text-sm hover:bg-indigo-700 disabled:opacity-60 transition"
-        >
-          {saving ? "Saving..." : "Save Changes"}
-        </button>
+      {/* Editor */}
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div className="px-5 py-4 border-b border-slate-200">
+          <h3 className="text-base font-semibold text-slate-900">Page Sections</h3>
+          <p className="text-sm text-slate-500">
+            Update section content. Structure/order comes from template.
+          </p>
+        </div>
+
+        <div className="p-5 space-y-4">
+          {sections.length === 0 ? (
+            <div className="border border-dashed border-slate-300 rounded-2xl p-8 text-center">
+              <p className="text-sm font-semibold text-slate-700">No sections found</p>
+              <p className="text-xs text-slate-500 mt-1">
+                Template structure_json has no sections.
+              </p>
+            </div>
+          ) : (
+            sections.map((sec, idx) => {
+              const sectionId = sec.id || sec.type;
+              const data = pageData[sectionId] || {};
+
+              const fields = Object.keys(data);
+
+              return (
+                <div
+                  key={sectionId}
+                  className="rounded-2xl border border-slate-200 bg-slate-50 p-4"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="text-sm font-semibold text-slate-900">
+                        {idx + 1}. {sec.type}
+                      </p>
+                      <p className="text-xs text-slate-500">Section ID: {sectionId}</p>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {fields.length === 0 ? (
+                      <p className="text-sm text-slate-500">
+                        No fields found in page_data_json for this section.
+                      </p>
+                    ) : (
+                      fields.map((field) => {
+                        const val = data[field] ?? "";
+
+                        const isJsonEditor =
+                          (sec.type === "features" && field === "items") ||
+                          (sec.type === "pricing" && field === "plans") ||
+                          (sec.type === "testimonials" && field === "items") ||
+                          (sec.type === "gallery" && field === "images");
+
+                        if (isJsonEditor) {
+                          const valid = isValidJsonArray(val);
+
+                          return (
+                            <div key={field} className="md:col-span-2 space-y-1">
+                              <label className="block text-xs font-semibold text-slate-600">
+                                {field} (JSON Array)
+                              </label>
+
+                              <textarea
+                                value={val}
+                                onChange={(e) =>
+                                  updateField(sectionId, field, e.target.value)
+                                }
+                                className={`w-full min-h-[180px] px-3 py-2 rounded-xl border font-mono text-sm outline-none focus:ring-2 ${
+                                  valid
+                                    ? "border-slate-200 focus:ring-indigo-500"
+                                    : "border-red-300 focus:ring-red-500"
+                                }`}
+                              />
+
+                              <p
+                                className={`text-xs ${
+                                  valid ? "text-slate-500" : "text-red-600"
+                                }`}
+                              >
+                                {valid ? "Valid JSON ✅" : "Invalid JSON ❌ (must be array)"}
+                              </p>
+                            </div>
+                          );
+                        }
+
+                        return (
+                          <div key={field} className="space-y-1">
+                            <label className="block text-xs font-semibold text-slate-600">
+                              {field.replaceAll("_", " ")}
+                            </label>
+                            <input
+                              value={val}
+                              onChange={(e) =>
+                                updateField(sectionId, field, e.target.value)
+                              }
+                              className="w-full h-10 px-3 rounded-xl border border-slate-200 text-sm outline-none focus:ring-2 focus:ring-indigo-500"
+                            />
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
       </div>
     </div>
   );

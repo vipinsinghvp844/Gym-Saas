@@ -54,102 +54,116 @@ import Integrations from "./pages/superadmin/Integrations";
 import EditTemplate from "./pages/superadmin/EmailTemplates";
 import CreatePlan from "./pages/superadmin/CreatePlan";
 import EditPlan from "./pages/superadmin/EditPlan";
+import BillingRequired from "../src/pages/gymadmin/BillingRequired";
+
 
 
 
 function App() {
   return (
-      <Routes>
+    <Routes>
 
-        {/* =======================
+      {/* =======================
             PUBLIC
         ======================= */}
-        <Route path="/login" element={<Login />} />
-        <Route path="/" element={<PageRenderer />} />
+      <Route path="/login" element={<Login />} />
+      <Route path="/" element={<PageRenderer />} />
 
-        {/* =======================
+      {/* =======================
             CHANGE PASSWORD
         ======================= */}
-        <Route
-          path="/change-password"
-          element={
-            <ProtectedRoute>
-              <ChangePassword />
-            </ProtectedRoute>
-          }
-        />
+      <Route
+        path="/change-password"
+        element={
+          <ProtectedRoute>
+            <ChangePassword />
+          </ProtectedRoute>
+        }
+      />
 
-        {/* =======================
+      {/* =======================
             SUPER ADMIN (NESTED)
         ======================= */}
-        <Route
-          path="/superadmin"
-          element={
-            <ProtectedRoute role="super_admin">
-              <SuperAdminLayout />
-            </ProtectedRoute>
-          }
-        >
-          <Route path="dashboard" element={<Dashboard />} />
-          <Route path="gyms" element={<Gyms />} />
-          <Route path="gyms/:id" element={<Gyms />} />
-          <Route path="gyms/:id/edit" element={<Gyms />} />
-          <Route path="gyms/:id/billing" element={<Gyms />} />
-          <Route path="create-gym" element={<CreateGym />} />
-          <Route path="requests" element={<Requests />} />
-          <Route path="templates" element={<Templates />} />
-          <Route path="templates/create" element={<CreateTemplate />} />
-          <Route path="templates/edit/:id" element={<EditTemplate />} />
-          <Route path="pages" element={<Pages />} />
-          <Route path="create-page" element={<CreatePage />} />
-          <Route path="gym-plans" element={<GymPlans /> } />
-          <Route path="billing/plans" element={<Plans/> } />
-          <Route path="billing/plans/create" element={<CreatePlan/> } />
-          <Route path="billing/plans/edit/:id" element={<EditPlan/> } />
-          <Route path="billing/subscriptions" element={<Subscriptions/> } />
-          <Route path="billing/payments" element={<Payments/> } />
-          <Route path="billing/invoices" element={<Invoices/> } />
-          <Route path="analytics/revenue" element={<RevenueAnalytics/> } />
-          <Route path="analytics/gym-growth" element={<GymGrowth/> } />
-          <Route path="analytics/usage" element={<UsageReports/> } />
-          <Route path="email-templates" element={<EmailTemplates/> } />
-          <Route path="support/tickets" element={<SupportTickets/> } />
-          <Route path="announcements" element={<Announcements/> } />
-          <Route path="settings" element={<Settings/> } />
-          <Route path="audit-logs" element={<AuditLogs/> } />
-          <Route path="integrations" element={<Integrations/> } />
+      <Route
+        path="/superadmin"
+        element={
+          <ProtectedRoute role="super_admin">
+            <SuperAdminLayout />
+          </ProtectedRoute>
+        }
+      >
+        <Route path="dashboard" element={<Dashboard />} />
+        <Route path="gyms" element={<Gyms />} />
+        <Route path="gyms/:id" element={<Gyms />} />
+        <Route path="gyms/:id/edit" element={<Gyms />} />
+        <Route path="gyms/:id/billing" element={<Gyms />} />
+        <Route path="create-gym" element={<CreateGym />} />
+        <Route path="requests" element={<Requests />} />
+        <Route path="templates" element={<Templates />} />
+        <Route path="templates/create" element={<CreateTemplate />} />
+        <Route path="templates/edit/:id" element={<EditTemplate />} />
+        <Route path="pages" element={<Pages />} />
+        <Route path="pages/edit/:id" element={<EditPage />} />
+        <Route path="create-page" element={<CreatePage />} />
+        <Route path="gym-plans" element={<GymPlans />} />
+        <Route path="billing/plans" element={<Plans />} />
+        <Route path="billing/plans/create" element={<CreatePlan />} />
+        <Route path="billing/plans/edit/:id" element={<EditPlan />} />
+        <Route path="billing/subscriptions" element={<Subscriptions />} />
+        <Route path="billing/payments" element={<Payments />} />
+        <Route path="billing/invoices" element={<Invoices />} />
+        <Route path="analytics/revenue" element={<RevenueAnalytics />} />
+        <Route path="analytics/gym-growth" element={<GymGrowth />} />
+        <Route path="analytics/usage" element={<UsageReports />} />
+        <Route path="email-templates" element={<EmailTemplates />} />
+        <Route path="support/tickets" element={<SupportTickets />} />
+        <Route path="announcements" element={<Announcements />} />
+        <Route path="settings" element={<Settings />} />
+        <Route path="audit-logs" element={<AuditLogs />} />
+        <Route path="integrations" element={<Integrations />} />
 
 
-          <Route path="pages/edit/:id" element={<EditPage />} />
-          <Route path="setting/profile" element={<SuperAdminProfile />} />
-        </Route>
+        <Route path="pages/edit/:id" element={<EditPage />} />
+        <Route path="setting/profile" element={<SuperAdminProfile />} />
+      </Route>
 
-        {/* =======================
+      {/* =======================
             GYM ADMIN (NESTED)
         ======================= */}
-        <Route
-          path="/gym"
-          element={
-            <ProtectedRoute role="gym_admin">
-              <GymAdminLayout />
-            </ProtectedRoute>
-          }
-        >
-          <Route path="dashboard" element={<GymDashboard />} />
-          <Route path="pages" element={<GymPages />} />
-          <Route path="pages/edit/:id" element={<EditGymPage />} />
-          <Route path="setting/profile" element={<GymProfile/>}/>
-        </Route>
+      <Route
+        path="/gym/billing-required"
+        element={
+          <ProtectedRoute role="gym_admin">
+            <BillingRequired />
+          </ProtectedRoute>
+        }
+      />
 
-        {/* =======================
+      <Route
+        path="/gym"
+        element={
+          <ProtectedRoute role="gym_admin">
+            <GymAdminLayout />
+          </ProtectedRoute>
+        }
+      >
+        <Route path="dashboard" element={<GymDashboard />} />
+        <Route path="pages" element={<GymPages />} />
+        <Route path="pages/edit/:id" element={<EditGymPage />} />
+        <Route path="setting/profile" element={<GymProfile />} />
+
+      </Route>
+
+      {/* =======================
             PUBLIC WEBSITE
             (ALWAYS LAST)
         ======================= */}
-        <Route path="/g/:gym" element={<GymPageRenderer />} />
-        <Route path="/g/:gym/:slug" element={<GymPageRenderer />} />
-        <Route path="/:slug" element={<PageRenderer />} />
+      <Route path="/g/:gym" element={<GymPageRenderer />} />
+      <Route path="/g/:gym/:slug" element={<GymPageRenderer />} />
+      <Route path="/p" element={<PageRenderer />} />
+      <Route path="/p/:slug" element={<PageRenderer />} />
 
-      </Routes>
+    </Routes>
   );
 }
 

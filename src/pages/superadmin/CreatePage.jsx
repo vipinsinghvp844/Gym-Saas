@@ -1,102 +1,136 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import api from "../../services/api";
 import PageHeader from "../../components/ui/PageHeader";
+import { useNavigate } from "react-router-dom";
+import { Save, Loader2 } from "lucide-react";
 
 const CreatePage = () => {
   const [templates, setTemplates] = useState([]);
+  const [loadingTemplates, setLoadingTemplates] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  const navigate = useNavigate();
+
   const [form, setForm] = useState({
     slug: "",
     template_id: "",
   });
 
   useEffect(() => {
-    const loadTemplates = async () => {
-      const res = await api.get("/templatess/list.php");
-      setTemplates(res.data.data || []);
-    };
-
     loadTemplates();
   }, []);
 
+  const loadTemplates = async () => {
+    try {
+      setLoadingTemplates(true);
+      const res = await api.get("/templatess/list.php");
+      setTemplates(res.data.data || []);
+    } catch (err) {
+      console.error(err);
+      alert("Failed to load templates");
+    } finally {
+      setLoadingTemplates(false);
+    }
+  };
+
+  const platformTemplates = useMemo(() => {
+    return templates.filter((t) => t.type === "platform");
+  }, [templates]);
+
   const submit = async () => {
-    if (!form.slug || !form.template_id) {
+    if (!form.slug.trim() || !form.template_id) {
       alert("Slug and Template are required");
       return;
     }
 
-    await api.post("/pages/create.php", {
-      slug: form.slug,
-      template_id: Number(form.template_id),
-      page_data: {},
-    });
+    try {
+      setSaving(true);
 
-    alert("Page created successfully");
-    setForm({ slug: "", template_id: "" });
+      await api.post("/pages/create.php", {
+        slug: form.slug.trim().toLowerCase(),
+        template_id: Number(form.template_id),
+      });
+
+      alert("Page created successfully ✅");
+      setForm({ slug: "", template_id: "" });
+
+      navigate("/superadmin/pages");
+    } catch (err) {
+      console.error(err);
+      alert(err?.response?.data?.message || "Create page failed");
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
-      <div className="max-w-6xl mx-auto px-6 py-6 bg-white">
+    <div className="space-y-6 p-5">
+      <PageHeader
+        title="Create Page"
+        subtitle="Create a new marketing page and assign a platform template"
+      />
 
-        {/* HEADER */}
-        <PageHeader
-          title="Create Page"
-          subtitle="Create a new website page and assign a template"
-        />
+      <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6 space-y-6 max-w-3xl">
+        {/* SLUG */}
+        <div>
+          <label className="block text-xs font-semibold text-slate-600 mb-1">
+            Page Slug
+          </label>
+          <input
+            className="w-full h-11 px-3 rounded-xl border border-slate-200 text-sm outline-none focus:ring-2 focus:ring-indigo-500"
+            placeholder="home, pricing, register"
+            value={form.slug}
+            onChange={(e) => setForm({ ...form, slug: e.target.value })}
+          />
+          <p className="text-xs text-slate-500 mt-1">
+            URL will be: <b>/p/{form.slug || "home"}</b>
+          </p>
+        </div>
 
-        {/* FORM CARD */}
-        <div className="bg-white border border-gray-200 rounded-xl p-6 space-y-6">
+        {/* TEMPLATE */}
+        <div>
+          <label className="block text-xs font-semibold text-slate-600 mb-1">
+            Select Template
+          </label>
 
-          {/* SLUG */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Page Slug
-            </label>
-            <input
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              placeholder="home, pricing, register"
-              value={form.slug}
-              onChange={(e) =>
-                setForm({ ...form, slug: e.target.value })
-              }
-            />
-            <p className="text-xs text-gray-500 mt-1">
-              This will be used in the URL (e.g. /home)
-            </p>
-          </div>
+          <select
+            className="w-full h-11 px-3 rounded-xl border border-slate-200 text-sm bg-white outline-none focus:ring-2 focus:ring-indigo-500"
+            value={form.template_id}
+            onChange={(e) => setForm({ ...form, template_id: e.target.value })}
+          >
+            <option value="">
+              {loadingTemplates ? "Loading templates..." : "Select template"}
+            </option>
 
-          {/* TEMPLATE */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Template
-            </label>
-            <select
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              value={form.template_id}
-              onChange={(e) =>
-                setForm({ ...form, template_id: e.target.value })
-              }
-            >
-              <option value="">Select Template</option>
-              {templates.map((t) => (
-                <option key={t.id} value={t.id}>
-                  {t.name}
-                </option>
-              ))}
-            </select>
-          </div>
+            {platformTemplates.map((t) => (
+              <option key={t.id} value={t.id}>
+                {t.name} (#{t.id})
+              </option>
+            ))}
+          </select>
 
-          {/* ACTION */}
-          <div className="flex justify-end pt-4 border-t border-gray-200">
-            <button
-              onClick={submit}
-              className="px-6 py-2 rounded-md bg-indigo-600 text-white text-sm hover:bg-indigo-700 transition"
-            >
-              Create Page
-            </button>
-          </div>
+          <p className="text-xs text-slate-500 mt-1">
+            Only <b>platform templates</b> can be used for marketing pages.
+          </p>
+        </div>
 
+        {/* ACTION */}
+        <div className="flex justify-end pt-4 border-t border-slate-200">
+          <button
+            onClick={submit}
+            disabled={saving}
+            className={`h-11 px-5 rounded-xl text-sm font-semibold flex items-center gap-2 ${
+              saving
+                ? "bg-indigo-300 text-white cursor-not-allowed"
+                : "bg-indigo-600 text-white hover:bg-indigo-700"
+            }`}
+          >
+            {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+            {saving ? "Creating..." : "Create Page"}
+          </button>
         </div>
       </div>
+    </div>
   );
 };
 

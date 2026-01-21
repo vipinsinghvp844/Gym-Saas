@@ -7,16 +7,18 @@ import {
   Tooltip,
 } from "recharts";
 
-const data = [
-  { name: "Active", value: 234, color: "#22c55e" },
-  { name: "Trial", value: 87, color: "#f59e0b" },
-  { name: "Suspended", value: 23, color: "#ef4444" },
-];
+const chartColors = {
+  Active: "#22c55e",
+  Trial: "#f59e0b",
+  Suspended: "#ef4444",
+  Inactive: "#94a3b8",
+};
 
-const GymStatusChart = () => {
+const GymStatusChart = ({ data = [] }) => {
+  const safeData = Array.isArray(data) ? data : [];
+
   return (
     <div className="bg-white rounded-xl border border-slate-200 shadow-sm">
-      {/* HEADER */}
       <div className="p-6 border-b border-slate-100">
         <h3 className="text-lg font-semibold text-slate-900">
           Gym Status Distribution
@@ -26,12 +28,11 @@ const GymStatusChart = () => {
         </p>
       </div>
 
-      {/* CHART */}
       <div className="p-6">
         <ResponsiveContainer width="100%" height={300}>
           <PieChart>
             <Pie
-              data={data}
+              data={safeData}
               cx="50%"
               cy="50%"
               outerRadius={100}
@@ -41,8 +42,8 @@ const GymStatusChart = () => {
                 `${name} ${(percent * 100).toFixed(0)}%`
               }
             >
-              {data.map((entry, index) => (
-                <Cell key={index} fill={entry.color} />
+              {safeData.map((entry, index) => (
+                <Cell key={index} fill={chartColors[entry.name] || "#64748b"} />
               ))}
             </Pie>
 
@@ -60,13 +61,17 @@ const GymStatusChart = () => {
               height={36}
               iconType="circle"
               formatter={(value) => (
-                <span className="text-sm text-slate-700">
-                  {value}
-                </span>
+                <span className="text-sm text-slate-700">{value}</span>
               )}
             />
           </PieChart>
         </ResponsiveContainer>
+
+        {safeData.length === 0 && (
+          <p className="text-sm text-slate-500 text-center mt-3">
+            No gym status data available.
+          </p>
+        )}
       </div>
     </div>
   );
