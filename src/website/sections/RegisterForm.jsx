@@ -1,17 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import publicApi from "../../services/publicApi";
-
-const isValidEmail = (email) => {
-  const v = String(email || "").trim().toLowerCase();
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
-};
-
-const isValidPhone = (phone) => {
-  const v = String(phone || "").trim();
-  // India friendly: allow 10 digits
-  const onlyDigits = v.replace(/\D/g, "");
-  return onlyDigits.length >= 10 && onlyDigits.length <= 13;
-};
 
 const RegisterForm = ({ data = {}, selectedPlan, onPlanReset }) => {
   const [form, setForm] = useState({
@@ -20,14 +8,14 @@ const RegisterForm = ({ data = {}, selectedPlan, onPlanReset }) => {
     owner_email: "",
     phone: "",
     city: "",
-    note: "",
+    state: "",
     plan_id: "",
+    trial_days: 14, // ✅ default 14 days
+    terms: false,
   });
 
-  const [agree, setAgree] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
-  // ✅ whenever plan selected in Pricing, auto set plan_id in form
   useEffect(() => {
     if (selectedPlan?.id) {
       setForm((prev) => ({
@@ -37,46 +25,24 @@ const RegisterForm = ({ data = {}, selectedPlan, onPlanReset }) => {
     }
   }, [selectedPlan]);
 
-  const errors = useMemo(() => {
-    const e = {};
-
-    if (!form.gym_name.trim()) e.gym_name = "Gym name is required";
-    if (!form.owner_name.trim()) e.owner_name = "Owner name is required";
-
-    if (!form.owner_email.trim()) e.owner_email = "Email is required";
-    else if (!isValidEmail(form.owner_email)) e.owner_email = "Invalid email";
-
-    if (!form.plan_id) e.plan_id = "Please select a plan";
-    if (form.phone.trim() && !isValidPhone(form.phone)) e.phone = "Invalid phone";
-
-    if (!agree) e.agree = "Please accept Terms & Privacy";
-
-    return e;
-  }, [form, agree]);
-
-  const canSubmit = Object.keys(errors).length === 0 && !submitting;
-
   const submit = async (e) => {
     e.preventDefault();
 
-    if (!canSubmit) {
-      // quick alert only, optional
-      if (errors.plan_id) return alert("Please select a plan first");
-      if (errors.agree) return alert("Please accept Terms & Privacy");
-      return alert("Please fix form errors");
-    }
+    if (!form.plan_id) return alert("Please select a plan first");
+    if (!form.terms) return alert("Please accept Terms & Conditions");
 
     try {
       setSubmitting(true);
 
       await publicApi.post("/public/gym-request.php", {
-        gym_name: form.gym_name.trim(),
-        owner_name: form.owner_name.trim(),
-        owner_email: form.owner_email.trim().toLowerCase(),
-        phone: form.phone.trim(),
-        city: form.city.trim(),
-        note: form.note.trim(),
-        plan_id: Number(form.plan_id),
+        gym_name: form.gym_name,
+        owner_name: form.owner_name,
+        owner_email: form.owner_email,
+        phone: form.phone,
+        city: form.city,
+        state: form.state,
+        plan_id: form.plan_id,
+        trial_days: Number(form.trial_days || 14),
       });
 
       alert("Request submitted successfully ✅");
@@ -87,13 +53,12 @@ const RegisterForm = ({ data = {}, selectedPlan, onPlanReset }) => {
         owner_email: "",
         phone: "",
         city: "",
-        note: "",
+        state: "",
         plan_id: "",
+        trial_days: 14,
+        terms: false,
       });
 
-      setAgree(false);
-
-      // ✅ reset selected plan (optional)
       onPlanReset?.();
     } catch (err) {
       console.error(err);
@@ -141,127 +106,87 @@ const RegisterForm = ({ data = {}, selectedPlan, onPlanReset }) => {
           </div>
 
           <form onSubmit={submit} className="space-y-4">
-            {/* Gym Name */}
-            <div>
-              <input
-                className={`w-full h-11 px-3 rounded-lg border text-sm outline-none focus:ring-2 ${
-                  errors.gym_name
-                    ? "border-red-300 focus:ring-red-300"
-                    : "border-slate-200 focus:ring-indigo-500"
-                }`}
-                placeholder="Gym Name"
-                value={form.gym_name}
-                onChange={(e) =>
-                  setForm({ ...form, gym_name: e.target.value })
-                }
-                required
-              />
-              {errors.gym_name && (
-                <p className="text-xs text-red-600 mt-1">{errors.gym_name}</p>
-              )}
-            </div>
-
-            {/* Owner Name */}
-            <div>
-              <input
-                className={`w-full h-11 px-3 rounded-lg border text-sm outline-none focus:ring-2 ${
-                  errors.owner_name
-                    ? "border-red-300 focus:ring-red-300"
-                    : "border-slate-200 focus:ring-indigo-500"
-                }`}
-                placeholder="Owner Name"
-                value={form.owner_name}
-                onChange={(e) =>
-                  setForm({ ...form, owner_name: e.target.value })
-                }
-                required
-              />
-              {errors.owner_name && (
-                <p className="text-xs text-red-600 mt-1">{errors.owner_name}</p>
-              )}
-            </div>
-
-            {/* Owner Email */}
-            <div>
-              <input
-                type="email"
-                className={`w-full h-11 px-3 rounded-lg border text-sm outline-none focus:ring-2 ${
-                  errors.owner_email
-                    ? "border-red-300 focus:ring-red-300"
-                    : "border-slate-200 focus:ring-indigo-500"
-                }`}
-                placeholder="Owner Email"
-                value={form.owner_email}
-                onChange={(e) =>
-                  setForm({ ...form, owner_email: e.target.value })
-                }
-                required
-              />
-              {errors.owner_email && (
-                <p className="text-xs text-red-600 mt-1">{errors.owner_email}</p>
-              )}
-            </div>
-
-            {/* Phone */}
-            <div>
-              <input
-                className={`w-full h-11 px-3 rounded-lg border text-sm outline-none focus:ring-2 ${
-                  errors.phone
-                    ? "border-red-300 focus:ring-red-300"
-                    : "border-slate-200 focus:ring-indigo-500"
-                }`}
-                placeholder="Phone Number"
-                value={form.phone}
-                onChange={(e) => setForm({ ...form, phone: e.target.value })}
-              />
-              {errors.phone && (
-                <p className="text-xs text-red-600 mt-1">{errors.phone}</p>
-              )}
-            </div>
-
-            {/* City (optional) */}
             <input
               className="w-full h-11 px-3 rounded-lg border border-slate-200 text-sm outline-none focus:ring-2 focus:ring-indigo-500"
-              placeholder="City (optional)"
-              value={form.city}
-              onChange={(e) => setForm({ ...form, city: e.target.value })}
+              placeholder="Gym Name"
+              value={form.gym_name}
+              onChange={(e) => setForm({ ...form, gym_name: e.target.value })}
+              required
             />
 
-            {/* Note (optional) */}
-            <textarea
-              className="w-full min-h-[90px] px-3 py-2 rounded-lg border border-slate-200 text-sm outline-none focus:ring-2 focus:ring-indigo-500"
-              placeholder="Any note for admin (optional)"
-              value={form.note}
-              onChange={(e) => setForm({ ...form, note: e.target.value })}
+            <input
+              className="w-full h-11 px-3 rounded-lg border border-slate-200 text-sm outline-none focus:ring-2 focus:ring-indigo-500"
+              placeholder="Owner Full Name"
+              value={form.owner_name}
+              onChange={(e) => setForm({ ...form, owner_name: e.target.value })}
+              required
             />
 
-            {/* Terms */}
-            <div className="flex items-start gap-2">
+            <input
+              type="email"
+              className="w-full h-11 px-3 rounded-lg border border-slate-200 text-sm outline-none focus:ring-2 focus:ring-indigo-500"
+              placeholder="Owner Email"
+              value={form.owner_email}
+              onChange={(e) => setForm({ ...form, owner_email: e.target.value })}
+              required
+            />
+
+            <input
+              className="w-full h-11 px-3 rounded-lg border border-slate-200 text-sm outline-none focus:ring-2 focus:ring-indigo-500"
+              placeholder="Phone Number"
+              value={form.phone}
+              onChange={(e) => setForm({ ...form, phone: e.target.value })}
+            />
+
+            {/* City / State */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <input
+                className="w-full h-11 px-3 rounded-lg border border-slate-200 text-sm outline-none focus:ring-2 focus:ring-indigo-500"
+                placeholder="City (optional)"
+                value={form.city}
+                onChange={(e) => setForm({ ...form, city: e.target.value })}
+              />
+              <input
+                className="w-full h-11 px-3 rounded-lg border border-slate-200 text-sm outline-none focus:ring-2 focus:ring-indigo-500"
+                placeholder="State (optional)"
+                value={form.state}
+                onChange={(e) => setForm({ ...form, state: e.target.value })}
+              />
+            </div>
+
+            {/* ✅ Trial Days */}
+            <div>
+              <label className="block text-xs font-semibold text-slate-600 mb-1">
+                Trial Period
+              </label>
+              <select
+                value={form.trial_days}
+                onChange={(e) =>
+                  setForm({ ...form, trial_days: e.target.value })
+                }
+                className="w-full h-11 px-3 rounded-lg border border-slate-200 text-sm outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+              >
+                <option value={7}>7 Days</option>
+                <option value={14}>14 Days</option>
+                <option value={30}>30 Days</option>
+              </select>
+            </div>
+
+            {/* ✅ Terms */}
+            <label className="flex items-center gap-2 text-sm text-slate-600">
               <input
                 type="checkbox"
-                checked={agree}
-                onChange={(e) => setAgree(e.target.checked)}
-                className="mt-1 w-4 h-4 rounded border-slate-300"
+                checked={form.terms}
+                onChange={(e) => setForm({ ...form, terms: e.target.checked })}
               />
-              <p className="text-sm text-slate-600">
-                I agree to the{" "}
-                <span className="font-semibold text-slate-900">
-                  Terms & Privacy Policy
-                </span>
-              </p>
-            </div>
-            {errors.agree && (
-              <p className="text-xs text-red-600 -mt-2">{errors.agree}</p>
-            )}
-
-            {/* Hidden plan id (optional debug) */}
-            <input type="hidden" value={form.plan_id} readOnly />
+              I agree to Terms & Conditions
+            </label>
 
             <button
               type="submit"
-              disabled={!canSubmit}
+              disabled={!form.plan_id || submitting}
               className={`w-full h-11 rounded-lg font-semibold text-sm transition ${
-                !canSubmit
+                !form.plan_id || submitting
                   ? "bg-gray-200 text-gray-500 cursor-not-allowed"
                   : "bg-black text-white hover:bg-gray-900"
               }`}
@@ -271,13 +196,6 @@ const RegisterForm = ({ data = {}, selectedPlan, onPlanReset }) => {
                 : data.submit_text || "Submit Request"}
             </button>
           </form>
-
-          {/* Helper */}
-          {!form.plan_id && (
-            <p className="text-xs text-slate-500 mt-4 text-center">
-              Plan select करके ही register request submit होगी ✅
-            </p>
-          )}
         </div>
       </div>
     </section>

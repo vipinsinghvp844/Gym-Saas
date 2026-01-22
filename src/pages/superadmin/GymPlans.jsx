@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import api from "../../services/api";
 import GymLoader from "../../components/ui/GymLoader";
 import { Check, X, ChevronDown } from "lucide-react";
-
+import toast from "react-hot-toast";
 
 const GymPlans = () => {
   const [plans, setPlans] = useState([]);
@@ -17,6 +17,15 @@ const GymPlans = () => {
   const [selectedGymId, setSelectedGymId] = useState("");
   const [assigning, setAssigning] = useState(false);
 
+  // ✅ new stats
+  const [stats, setStats] = useState({
+    active_plans: 0,
+    total_subscriptions: 0,
+    active_subscriptions: 0,
+    trial_subscriptions: 0,
+    cancelled_subscriptions: 0,
+  });
+
   const loadPlans = async () => {
     try {
       setLoadingPlans(true);
@@ -24,7 +33,7 @@ const GymPlans = () => {
       setPlans(res.data.data || []);
     } catch (err) {
       console.error(err);
-      alert("Failed to load plans");
+      toast.error("Failed to load plans");
     } finally {
       setLoadingPlans(false);
     }
@@ -37,18 +46,30 @@ const GymPlans = () => {
       setGyms(res.data.data || []);
     } catch (err) {
       console.error(err);
-      alert("Failed to load gyms");
+      toast.error("Failed to load gyms");
     } finally {
       setLoadingGyms(false);
     }
   };
 
+  const loadStats = async () => {
+    try {
+      const res = await api.get("/gym-subscriptions/stats.php");
+      if (res.data?.status) {
+        setStats(res.data.data);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   useEffect(() => {
     loadPlans();
+    loadStats();
   }, []);
 
   const activePlansCount = useMemo(
-    () => plans.filter((p) => p.status === "active").length,
+    () => plans.filter((p) => (p.status || "").toLowerCase() === "active").length,
     [plans]
   );
 
@@ -69,8 +90,8 @@ const GymPlans = () => {
   };
 
   const assignPlan = async () => {
-    if (!selectedPlan?.id) return alert("Plan missing");
-    if (!selectedGymId) return alert("Please select a gym");
+    if (!selectedPlan?.id) return toast.error("Plan missing");
+    if (!selectedGymId) return toast.error("Please select a gym");
 
     try {
       setAssigning(true);
@@ -80,11 +101,14 @@ const GymPlans = () => {
         plan_id: selectedPlan.id,
       });
 
-      alert("Plan assigned ✅");
+      toast.success("Plan assigned ✅");
       closeModal();
+
+      // ✅ refresh stats after assign
+      loadStats();
     } catch (err) {
       console.error(err);
-      alert(err?.response?.data?.message || "Assign failed");
+      toast.error(err?.response?.data?.message || "Assign failed");
     } finally {
       setAssigning(false);
     }
@@ -101,17 +125,34 @@ const GymPlans = () => {
         </div>
       </div>
 
-      {/* STATS */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      {/* ✅ STATS */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
           <p className="text-sm text-slate-600 mb-1">Active Plans</p>
           <p className="text-2xl font-semibold text-slate-900">
-            {activePlansCount}
+            {stats.active_plans || activePlansCount}
           </p>
         </div>
+
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
           <p className="text-sm text-slate-600 mb-1">Total Subscriptions</p>
-          <p className="text-2xl font-semibold text-slate-900">—</p>
+          <p className="text-2xl font-semibold text-slate-900">
+            {stats.total_subscriptions || 0}
+          </p>
+        </div>
+
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
+          <p className="text-sm text-slate-600 mb-1">Active Subscriptions</p>
+          <p className="text-2xl font-semibold text-slate-900">
+            {stats.active_subscriptions || 0}
+          </p>
+        </div>
+
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
+          <p className="text-sm text-slate-600 mb-1">Trial Subscriptions</p>
+          <p className="text-2xl font-semibold text-slate-900">
+            {stats.trial_subscriptions || 0}
+          </p>
         </div>
       </div>
 
@@ -122,7 +163,7 @@ const GymPlans = () => {
         </div>
       )}
 
-      {/* PLANS UI SAME */}
+      {/* PLANS GRID */}
       {!loadingPlans && (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
           {plans.map((plan, idx) => {
@@ -130,16 +171,16 @@ const GymPlans = () => {
               ? plan.features_json
               : [];
 
+            const isActive = (plan.status || "").toLowerCase() === "active";
+
             return (
               <div
                 key={plan.id || idx}
                 className={`bg-white rounded-xl border-2 ${
-                  plan.status === "active"
-                    ? "border-indigo-200"
-                    : "border-slate-200"
+                  isActive ? "border-indigo-200" : "border-slate-200"
                 } shadow-sm overflow-hidden`}
               >
-                {plan.status === "active" && (
+                {isActive && (
                   <div className="bg-indigo-600 text-white text-center py-2 text-xs font-semibold">
                     ACTIVE
                   </div>
@@ -155,7 +196,7 @@ const GymPlans = () => {
                       ₹{plan.price}
                     </span>
                     <span className="text-sm text-slate-500 ml-2">
-                      {plan.billing_cycle}
+                      / {plan.billing_cycle}
                     </span>
                   </div>
 
