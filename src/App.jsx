@@ -55,6 +55,8 @@ import EditTemplate from "./pages/superadmin/EmailTemplates";
 import CreatePlan from "./pages/superadmin/CreatePlan";
 import EditPlan from "./pages/superadmin/EditPlan";
 import BillingRequired from "../src/pages/gymadmin/BillingRequired";
+import CreateEmailTemplate from "./pages/superadmin/CreateEmailTemplate";
+import EditEmailTemplate from "./pages/superadmin/EditEmailTemplate";
 
 
 
@@ -104,7 +106,9 @@ function App() {
         <Route path="templates/edit/:id" element={<EditTemplate />} />
         <Route path="pages" element={<Pages />} />
         <Route path="pages/edit/:id" element={<EditPage />} />
-        <Route path="create-page" element={<CreatePage />} />
+        <Route path="pages/create" element={<CreatePage />} />
+        <Route path="email-templates/create" element={<CreateEmailTemplate />} />
+        <Route path="email-templates/edit/:id" element={<EditEmailTemplate />} />
         <Route path="gym-plans" element={<GymPlans />} />
         <Route path="billing/plans" element={<Plans />} />
         <Route path="billing/plans/create" element={<CreatePlan />} />
