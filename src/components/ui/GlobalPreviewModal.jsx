@@ -21,8 +21,6 @@ const statusBadge = {
 };
 
 const GlobalPreviewModal = ({ isOpen, onClose, type = "gym", data }) => {
-  console.log(data,"data");
-  
   useEffect(() => {
     if (!isOpen) return;
 

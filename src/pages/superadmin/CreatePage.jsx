@@ -23,8 +23,8 @@ const CreatePage = () => {
   const loadTemplates = async () => {
     try {
       setLoadingTemplates(true);
-      const res = await api.get("/templatess/list.php");
-      setTemplates(res.data.data || []);
+      const res = await api.get("/templates/list.php");
+      setTemplates(Array.isArray(res.data.data) ? res.data.data : []);
     } catch (err) {
       console.error(err);
       alert("Failed to load templates");
@@ -37,8 +37,20 @@ const CreatePage = () => {
     return templates.filter((t) => t.type === "platform");
   }, [templates]);
 
+  const normalizeSlug = (value) => {
+    return (value || "")
+      .toLowerCase()
+      .trim()
+      .replace(/\s+/g, "-")
+      .replace(/\-+/g, "-")
+      .replace(/[^a-z0-9\-]/g, "")
+      .replace(/^\-+|\-+$/g, "");
+  };
+
   const submit = async () => {
-    if (!form.slug.trim() || !form.template_id) {
+    const slug = normalizeSlug(form.slug);
+
+    if (!slug || !form.template_id) {
       alert("Slug and Template are required");
       return;
     }
@@ -47,13 +59,11 @@ const CreatePage = () => {
       setSaving(true);
 
       await api.post("/pages/create.php", {
-        slug: form.slug.trim().toLowerCase(),
+        slug,
         template_id: Number(form.template_id),
       });
 
       alert("Page created successfully ✅");
-      setForm({ slug: "", template_id: "" });
-
       navigate("/superadmin/pages");
     } catch (err) {
       console.error(err);
@@ -83,7 +93,7 @@ const CreatePage = () => {
             onChange={(e) => setForm({ ...form, slug: e.target.value })}
           />
           <p className="text-xs text-slate-500 mt-1">
-            URL will be: <b>/p/{form.slug || "home"}</b>
+            URL will be: <b>/p/{normalizeSlug(form.slug) || "home"}</b>
           </p>
         </div>
 
@@ -97,6 +107,7 @@ const CreatePage = () => {
             className="w-full h-11 px-3 rounded-xl border border-slate-200 text-sm bg-white outline-none focus:ring-2 focus:ring-indigo-500"
             value={form.template_id}
             onChange={(e) => setForm({ ...form, template_id: e.target.value })}
+            disabled={loadingTemplates}
           >
             <option value="">
               {loadingTemplates ? "Loading templates..." : "Select template"}
@@ -118,14 +129,18 @@ const CreatePage = () => {
         <div className="flex justify-end pt-4 border-t border-slate-200">
           <button
             onClick={submit}
-            disabled={saving}
+            disabled={saving || loadingTemplates}
             className={`h-11 px-5 rounded-xl text-sm font-semibold flex items-center gap-2 ${
-              saving
+              saving || loadingTemplates
                 ? "bg-indigo-300 text-white cursor-not-allowed"
                 : "bg-indigo-600 text-white hover:bg-indigo-700"
             }`}
           >
-            {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+            {saving ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Save className="w-4 h-4" />
+            )}
             {saving ? "Creating..." : "Create Page"}
           </button>
         </div>

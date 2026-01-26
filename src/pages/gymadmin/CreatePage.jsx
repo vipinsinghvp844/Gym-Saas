@@ -8,7 +8,7 @@ const CreateGymPage = () => {
   const [template, setTemplate] = useState("");
 
   useEffect(() => {
-    api.get("/templatess/list.php").then((res) => {
+    api.get("/templates/list.php").then((res) => {
       setTemplates(res.data.data);
     });
   }, []);

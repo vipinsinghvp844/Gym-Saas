@@ -105,10 +105,15 @@ const Dashboard = () => {
           <RecentPaymentsTable
             payments={stats.recent_payments || []}
             onRefresh={async () => {
-              const res = await api.get("/dashboard/super_admin.php");
-              setStats(res.data.data);
+              try {
+                const res = await api.get("/dashboard/super_admin.php");
+                setStats(res.data.data);
+              } catch (e) {
+                console.error(e);
+              }
             }}
           />
+
         </div>
       )}
     </div>

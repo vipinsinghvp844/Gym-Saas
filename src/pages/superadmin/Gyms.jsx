@@ -10,6 +10,7 @@ import AssignAdminModal from "../../components/ui/AssignAdminModal";
 import toast from 'react-hot-toast';
 import ConfirmationModal from '../../components/ui/ConfirmationModal';
 import api from '../../services/api';
+import TablePagination from '../../components/ui/TablePagination';
 
 
 const Gyms = () => {
@@ -18,7 +19,7 @@ const Gyms = () => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [planFilter, setPlanFilter] = useState('all');
   const dispatch = useDispatch();
-  const { list, listLoading } = useSelector((state) => state.gym);
+  const { list, listLoading, pagination  } = useSelector((state) => state.gym);
   const { stats, statsLoading } = useSelector((state) => state.gym);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewType, setPreviewType] = useState("gym");
@@ -29,6 +30,8 @@ const Gyms = () => {
   const [assignGym, setAssignGym] = useState(null);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleteIds, setDeleteIds] = useState([]);
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
 
   const handleAssignPlan = async (planId) => {
     if (!selectedGym?.id) return;
@@ -39,7 +42,7 @@ const Gyms = () => {
         plan_id: planId,
       });
 
-      toast.success("Plan assigned successfully ✅");
+      toast.success("Plan assigned successfully ");
 
       setAssignOpen(false);
       setSelectedGym(null);
@@ -50,6 +53,8 @@ const Gyms = () => {
           search: searchTerm,
           status: statusFilter,
           plan: planFilter,
+          page,
+          limit
         })
       );
       dispatch(fetchGymStats());
@@ -62,9 +67,10 @@ const Gyms = () => {
 
 
   useEffect(() => {
-    dispatch(fetchGyms({ search: "", status: "all", plan: "all" }));
+    dispatch(fetchGyms({ search: "", status: "all", plan: "all", page, limit }));
     dispatch(fetchGymStats());
-  }, [dispatch]);
+    setPage(1);
+  }, [dispatch, page, limit]);
   useEffect(() => {
     const timer = setTimeout(() => {
       dispatch(
@@ -179,8 +185,8 @@ const Gyms = () => {
             <option value="all">All Status</option>
             <option value="inactive">Inactive</option>
             <option value="active">Active</option>
-            <option value="trial">Trial</option>
             <option value="suspended">Suspended</option>
+            <option value="trial">Trial</option>
           </select>
           <select
             value={planFilter}
@@ -316,10 +322,23 @@ const Gyms = () => {
                   </td>
 
                   <td className="px-6 py-4">
-                    <span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-semibold ${statusColors[gym.status]}`}>
-                      {gym.status}
-                    </span>
+                    {(() => {
+                      const displayStatus =
+                        (gym.billing_status || "").toLowerCase() === "trial"
+                          ? "trial"
+                          : (gym.status || "inactive").toLowerCase();
+
+                      return (
+                        <span
+                          className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-semibold ${statusColors[displayStatus] || "bg-gray-100 text-gray-700"
+                            }`}
+                        >
+                          {displayStatus}
+                        </span>
+                      );
+                    })()}
                   </td>
+
                   <td className="px-6 py-4">
                     <p className="text-sm font-medium text-slate-900">{gym.members}</p>
                   </td>
@@ -373,20 +392,18 @@ const Gyms = () => {
             </tbody>
           </table>
         </div>
-        <div className="px-6 py-4 border-t border-slate-200 flex items-center justify-between">
-          <p className="text-sm text-slate-600">Showing 1 to 6 of 344 gyms</p>
-          <div className="flex gap-2">
-            <button className="px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50">
-              Previous
-            </button>
-            <button className="w-8 h-8 bg-indigo-600 text-white rounded-lg text-sm font-medium">1</button>
-            <button className="w-8 h-8 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50">2</button>
-            <button className="w-8 h-8 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50">3</button>
-            <button className="px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50">
-              Next
-            </button>
-          </div>
-        </div>
+          <TablePagination
+            page={pagination?.page || 1}
+            limit={pagination?.limit || 10}
+            total={pagination?.total || 0}
+            totalPages={pagination?.totalPages || 1}
+            onPageChange={(p) => setPage(p)}
+            onLimitChange={(l) => {
+              setLimit(l);
+              setPage(1);
+            }}
+          />
+
       </div>
       <GlobalPreviewModal
         isOpen={previewOpen}
