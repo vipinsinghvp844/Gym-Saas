@@ -1,28 +1,39 @@
+import { useEffect, useState } from "react";
+import api from "../../services/api";
 import {
   Users,
   UserCheck,
+  UserX,
   FileText,
-  CreditCard,
-  TrendingUp,
-  TrendingDown,
+  AlertTriangle,
 } from "lucide-react";
 import PageTitle from "../../layouts/PageTitle";
+import GymLoader from "../../components/ui/GymLoader";
+import GymDashboardChart from "../../layouts/GymDashboardChart";
 
 /* =========================
    STAT CARD
 ========================= */
-const StatCard = ({ title, value, icon: Icon, bg, color }) => (
-  <div className="bg-white rounded-xl p-5 shadow-sm flex items-center gap-4">
-    <div
-      className={`w-11 h-11 rounded-lg flex items-center justify-center ${bg} ${color}`}
-    >
-      <Icon size={22} />
+const StatCard = ({ title, value, icon: Icon, bg, color, hint }) => (
+  <div className="bg-white rounded-xl p-5 shadow-sm space-y-1">
+    <div className="flex items-center gap-4">
+      <div
+        className={`w-11 h-11 rounded-lg flex items-center justify-center ${bg} ${color}`}
+      >
+        <Icon size={22} />
+      </div>
+
+      <div>
+        <p className="text-sm text-gray-500">{title}</p>
+        <h2 className="text-xl font-semibold text-gray-900">
+          {value ?? "-"}
+        </h2>
+      </div>
     </div>
 
-    <div>
-      <p className="text-sm text-gray-500">{title}</p>
-      <h2 className="text-xl font-semibold text-gray-900">{value}</h2>
-    </div>
+    {hint && (
+      <p className="text-xs text-gray-400 mt-1">{hint}</p>
+    )}
   </div>
 );
 
@@ -30,6 +41,64 @@ const StatCard = ({ title, value, icon: Icon, bg, color }) => (
    DASHBOARD
 ========================= */
 const GymDashboard = () => {
+  const [loading, setLoading] = useState(false);
+  const [stats, setStats] = useState({});
+  const [recentMembers, setRecentMembers] = useState([]);
+  const [chartLoading, setChartLoading] = useState(false);
+  const [chartData, setChartData] = useState({
+    members: [],
+    revenue: [],
+  });
+
+  /* dashboard chart data */
+
+  const loadChartData = async () => {
+    try {
+      setChartLoading(true);
+      const res = await api.get("/dashboard/gym_admin_chart.php");
+
+      setChartData(res.data?.data || {
+        members: [],
+        revenue: [],
+      });
+    } catch (err) {
+      console.error("Chart API error", err);
+    } finally {
+      setChartLoading(false);
+    }
+  };
+
+
+  const loadDashboard = async () => {
+    try {
+      setLoading(true);
+      const res = await api.get("/dashboard/gym_admin.php");
+
+      setStats(res.data?.data?.stats || {});
+      setRecentMembers(res.data?.data?.recent_members || []);
+    } catch {
+      alert("Failed to load dashboard");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadDashboard();
+    loadChartData();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="p-10">
+        <GymLoader label="Loading dashboard..." />
+      </div>
+    );
+  }
+
+  const inactiveMembers =
+    (stats.total_members || 0) - (stats.active_members || 0);
+
   return (
     <div className="max-w-7xl mx-auto px-6 py-6 bg-[#f3f6f9] min-h-screen space-y-6">
 
@@ -37,15 +106,6 @@ const GymDashboard = () => {
       <PageTitle
         title="Dashboard"
         subtitle="Overview of your gym performance"
-      // rightSlot={
-      //   <button className="px-4 py-2 bg-brand text-white rounded-md text-sm">
-      //     + Add Member
-      //   </button>
-      // }
-      //       breadcrumb={[
-      //   { label: "Home", href: "/gym/dashboard" },
-      //   { label: "Dashboard" },
-      // ]}
       />
 
       {/* =====================
@@ -54,95 +114,64 @@ const GymDashboard = () => {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         <StatCard
           title="Total Members"
-          value="342"
+          value={stats.total_members}
           icon={Users}
           bg="bg-emerald-100"
           color="text-emerald-600"
         />
+
         <StatCard
           title="Active Members"
-          value="298"
+          value={stats.active_members}
           icon={UserCheck}
           bg="bg-sky-100"
           color="text-sky-600"
         />
+
         <StatCard
-          title="Website Pages"
-          value="3"
+          title="Inactive Members"
+          value={inactiveMembers}
+          icon={UserX}
+          bg="bg-rose-100"
+          color="text-rose-600"
+          hint="Members not currently active"
+        />
+
+        <StatCard
+          title="Gym Pages"
+          value={stats.total_pages}
           icon={FileText}
           bg="bg-amber-100"
           color="text-amber-600"
-        />
-        <StatCard
-          title="Monthly Revenue"
-          value="₹42,300"
-          icon={CreditCard}
-          bg="bg-violet-100"
-          color="text-violet-600"
+          hint="Public website pages"
         />
       </div>
 
       {/* =====================
-          ANALYSIS REPORT
+          CHART
       ===================== */}
-      <div className="bg-white rounded-xl p-6 shadow-sm">
-        <div className="flex items-center justify-between mb-4">
+      <GymDashboardChart
+        loading={chartLoading}
+        data={chartData}
+      />
+
+
+      {/* =====================
+          SYSTEM ALERTS (OPTIONAL)
+      ===================== */}
+      {stats.show_alert && (
+        <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 flex items-start gap-3">
+          <AlertTriangle className="text-yellow-600 mt-0.5" size={18} />
           <div>
-            <h3 className="text-sm font-semibold text-gray-800">
-              Analysis Report
-            </h3>
-            <p className="text-xs text-gray-400">
-              Income and Expense Overview
+            <p className="text-sm font-medium text-yellow-800">
+              Attention required
+            </p>
+            <p className="text-xs text-yellow-700">
+              Your subscription is expiring soon. Please review billing.
             </p>
           </div>
-
-          <div className="flex items-center gap-4 text-xs">
-            <span className="flex items-center gap-1 text-emerald-600">
-              <TrendingUp size={14} /> Income
-            </span>
-            <span className="flex items-center gap-1 text-rose-500">
-              <TrendingDown size={14} /> Expense
-            </span>
-          </div>
         </div>
-
-        {/* CHART PLACEHOLDER */}
-        <div className="h-64 flex items-center justify-center text-gray-400 text-sm border border-dashed rounded-lg">
-          📊 Chart will be added here
-        </div>
-      </div>
-
-      {/* =====================
-          QUICK ACTIONS
-      ===================== */}
-      <div className="bg-white rounded-xl p-6 shadow-sm">
-        <h3 className="text-sm font-semibold text-gray-800 mb-4">
-          Quick Actions
-        </h3>
-
-        <div className="flex gap-4 flex-wrap">
-          <a
-            href="/gym/pages"
-            className="px-4 py-2 rounded-md bg-black text-white text-sm hover:bg-gray-900 transition"
-          >
-            Manage Pages
-          </a>
-
-          <a
-            href="/gym/members"
-            className="px-4 py-2 rounded-md border text-sm hover:bg-gray-100 transition"
-          >
-            View Members
-          </a>
-
-          <a
-            href="/gym/settings/profile"
-            className="px-4 py-2 rounded-md border text-sm hover:bg-gray-100 transition"
-          >
-            Gym Settings
-          </a>
-        </div>
-      </div>
+      )}
 
       {/* =====================
           RECENT MEMBERS
@@ -162,25 +191,32 @@ const GymDashboard = () => {
           </thead>
 
           <tbody className="divide-y">
-            <tr>
-              <td className="py-3">Rahul Sharma</td>
-              <td className="text-center">rahul@gmail.com</td>
-              <td className="text-center">
-                <span className="px-2 py-1 text-xs rounded-full bg-emerald-100 text-emerald-700">
-                  Active
-                </span>
-              </td>
-            </tr>
+            {recentMembers.length === 0 && (
+              <tr>
+                <td colSpan="3" className="py-6 text-center text-gray-400">
+                  No members found
+                </td>
+              </tr>
+            )}
 
-            <tr>
-              <td className="py-3">Amit Verma</td>
-              <td className="text-center">amit@gmail.com</td>
-              <td className="text-center">
-                <span className="px-2 py-1 text-xs rounded-full bg-rose-100 text-rose-600">
-                  Inactive
-                </span>
-              </td>
-            </tr>
+            {recentMembers.map((m, idx) => (
+              <tr key={idx}>
+                <td className="py-3">
+                  {m.first_name} {m.last_name}
+                </td>
+                <td className="text-center">{m.email}</td>
+                <td className="text-center">
+                  <span
+                    className={`px-2 py-1 text-xs rounded-full ${m.status === "active"
+                        ? "bg-emerald-100 text-emerald-700"
+                        : "bg-rose-100 text-rose-600"
+                      }`}
+                  >
+                    {m.status}
+                  </span>
+                </td>
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>

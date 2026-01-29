@@ -57,6 +57,7 @@ import EditPlan from "./pages/superadmin/EditPlan";
 import BillingRequired from "../src/pages/gymadmin/BillingRequired";
 import CreateEmailTemplate from "./pages/superadmin/CreateEmailTemplate";
 import EditEmailTemplate from "./pages/superadmin/EditEmailTemplate";
+import SupportTicketView from "./pages/superadmin/SupportTicketView";
 
 
 
@@ -120,7 +121,8 @@ function App() {
         <Route path="analytics/gym-growth" element={<GymGrowth />} />
         <Route path="analytics/usage" element={<UsageReports />} />
         <Route path="email-templates" element={<EmailTemplates />} />
-        <Route path="support/tickets" element={<SupportTickets />} />
+        <Route path="support" element={<SupportTickets />} />
+        <Route path="superadmin/support/:id" element={<SupportTicketView />} />
         <Route path="announcements" element={<Announcements />} />
         <Route path="settings" element={<Settings />} />
         <Route path="audit-logs" element={<AuditLogs />} />

@@ -1,46 +1,124 @@
 import {
   LayoutDashboard,
   Users,
-  UserCheck,
-  UserX,
-  Calendar,
-  CreditCard,
-  ClipboardList,
   Dumbbell,
-  Activity,
-  Package,
-  MessageSquare,
+  UserCircle,
+  Calendar,
+  Clock,
+  CreditCard,
+  BarChart3,
+  DollarSign,
+  TrendingUp,
+  Megaphone,
+  Bell,
   Settings,
-  Layers,
+  Shield,
 } from "lucide-react";
 
 const gymAdminMenu = [
   {
-    section: "Home",
+    section: "CORE",
     items: [
-      { title: "Dashboard", path: "/gym/dashboard", icon: LayoutDashboard },
+      {
+        title: "Dashboard",
+        path: "/gym/dashboard",
+        icon: LayoutDashboard,
+      },
     ],
   },
+
   {
-    section: "Business Management",
+    section: "GYM OPERATIONS",
     items: [
-      { title: "Trainers", path: "/gym/trainers", icon: UserCheck },
-      { title: "Trainees", path: "/gym/trainees", icon: Users },
-      { title: "Classes", path: "/gym/classes", icon: Calendar },
-      { title: "Membership", path: "/gym/memberships", icon: ClipboardList },
-      { title: "Workouts", path: "/gym/workouts", icon: Dumbbell },
-      { title: "Attendance", path: "/gym/attendance", icon: Activity },
-      { title: "Finance", path: "/gym/finance", icon: CreditCard },
-      { title: "Product Management", path: "/gym/products", icon: Package },
-      { title: "Notice Board", path: "/gym/notices", icon: MessageSquare },
+      {
+        title: "Members",
+        path: "/gym/members",
+        icon: Users,
+      },
+      {
+        title: "Trainers",
+        path: "/gym/trainers",
+        icon: Dumbbell,
+      },
+      {
+        title: "Staff",
+        path: "/gym/staff",
+        icon: UserCircle,
+      },
     ],
   },
+
   {
-    section: "System Configuration",
+    section: "GYM MANAGEMENT",
     items: [
-      { title: "Pages", path: "/gym/pages", icon: Layers },
-      { title: "Templates", path: "/gym/templates", icon: Layers },
-      { title: "Settings", path: "/gym/settings/profile", icon: Settings },
+      {
+        title: "Classes",
+        path: "/gym/classes",
+        icon: Calendar,
+      },
+      {
+        title: "Schedules",
+        path: "/gym/schedules",
+        icon: Clock,
+      },
+      {
+        title: "Membership Plans",
+        path: "/gym/membership-plans",
+        icon: CreditCard,
+      },
+    ],
+  },
+
+  {
+    section: "REPORTS",
+    items: [
+      {
+        title: "Attendance",
+        path: "/gym/reports/attendance",
+        icon: BarChart3,
+      },
+      {
+        title: "Revenue",
+        path: "/gym/reports/revenue",
+        icon: DollarSign,
+      },
+      {
+        title: "Performance",
+        path: "/gym/reports/performance",
+        icon: TrendingUp,
+      },
+    ],
+  },
+
+  {
+    section: "COMMUNICATION",
+    items: [
+      {
+        title: "Announcements",
+        path: "/gym/announcements",
+        icon: Megaphone,
+      },
+      {
+        title: "Notifications",
+        path: "/gym/notifications",
+        icon: Bell,
+      },
+    ],
+  },
+
+  {
+    section: "SETTINGS",
+    items: [
+      {
+        title: "Gym Settings",
+        path: "/gym/settings",
+        icon: Settings,
+      },
+      {
+        title: "Roles & Permissions",
+        path: "/gym/roles",
+        icon: Shield,
+      },
     ],
   },
 ];
