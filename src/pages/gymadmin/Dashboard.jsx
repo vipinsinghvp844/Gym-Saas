@@ -44,30 +44,7 @@ const GymDashboard = () => {
   const [loading, setLoading] = useState(false);
   const [stats, setStats] = useState({});
   const [recentMembers, setRecentMembers] = useState([]);
-  const [chartLoading, setChartLoading] = useState(false);
-  const [chartData, setChartData] = useState({
-    members: [],
-    revenue: [],
-  });
-
-  /* dashboard chart data */
-
-  const loadChartData = async () => {
-    try {
-      setChartLoading(true);
-      const res = await api.get("/dashboard/gym_admin_chart.php");
-
-      setChartData(res.data?.data || {
-        members: [],
-        revenue: [],
-      });
-    } catch (err) {
-      console.error("Chart API error", err);
-    } finally {
-      setChartLoading(false);
-    }
-  };
-
+  const [charts, setCharts] = useState({});
 
   const loadDashboard = async () => {
     try {
@@ -76,6 +53,7 @@ const GymDashboard = () => {
 
       setStats(res.data?.data?.stats || {});
       setRecentMembers(res.data?.data?.recent_members || []);
+      setCharts(res.data?.data?.charts || {});
     } catch {
       alert("Failed to load dashboard");
     } finally {
@@ -85,7 +63,6 @@ const GymDashboard = () => {
 
   useEffect(() => {
     loadDashboard();
-    loadChartData();
   }, []);
 
   if (loading) {
@@ -145,15 +122,50 @@ const GymDashboard = () => {
           color="text-amber-600"
           hint="Public website pages"
         />
+        <StatCard
+          title="Expiring Memberships"
+          value={stats.expiring_memberships}
+          icon={AlertTriangle}
+          bg="bg-yellow-100"
+          color="text-yellow-700"
+          hint="Next 7 days"
+        />
+        <StatCard
+          title="Today's Attendance"
+          value={stats.today_attendance}
+          icon={Users}
+          bg="bg-indigo-100"
+          color="text-indigo-700"
+          hint="Present today"
+        />
       </div>
 
       {/* =====================
           CHART
       ===================== */}
-      <GymDashboardChart
-        loading={chartLoading}
-        data={chartData}
-      />
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <GymDashboardChart
+          title="Member Growth"
+          subtitle="New members (last 6 months)"
+          data={charts.member_growth}
+          color="#0284c7"
+        />
+
+        <GymDashboardChart
+          title="Attendance Trend"
+          subtitle="Present members (last 6 months)"
+          data={charts.attendance}
+          color="#7c3aed"
+        />
+
+        <GymDashboardChart
+          title="Revenue"
+          subtitle="Coming soon"
+          data={charts.revenue || charts.attendance} // temp reuse
+          color="#059669"
+        />
+      </div>
+
 
 
       {/* =====================
@@ -208,8 +220,8 @@ const GymDashboard = () => {
                 <td className="text-center">
                   <span
                     className={`px-2 py-1 text-xs rounded-full ${m.status === "active"
-                        ? "bg-emerald-100 text-emerald-700"
-                        : "bg-rose-100 text-rose-600"
+                      ? "bg-emerald-100 text-emerald-700"
+                      : "bg-rose-100 text-rose-600"
                       }`}
                   >
                     {m.status}
