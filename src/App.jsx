@@ -65,6 +65,8 @@ import GymMembershipPlans from "./pages/gymadmin/members/GymMembershipPlans";
 import AddMembershipPlan from "./pages/gymadmin/members/AddMembershipPlan";
 import GymTrainers from "./pages/gymadmin/members/GymTrainer";
 import GymStaff from "./pages/gymadmin/members/GymStaff";
+import GymClasses from "./pages/gymadmin/members/GymClasses";
+import GymCheckIn from "./pages/gymadmin/members/GymCheckIn";
 
 
 
@@ -167,6 +169,8 @@ function App() {
         <Route path="members" element={<GymMembers />} />
         <Route path="trainers" element={<GymTrainers />} />
         <Route path="staff" element={<GymStaff />} />
+        <Route path="classes" element={<GymClasses />} />
+        <Route path="checkin" element={<GymCheckIn />} />
         <Route path="members/add" element={<AddMember />} />
         <Route path="members/:id" element={<GymMemberDetail />} />
         <Route path="membership-plans" element={<GymMembershipPlans />} />
