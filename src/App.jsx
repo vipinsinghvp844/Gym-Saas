@@ -58,6 +58,13 @@ import BillingRequired from "../src/pages/gymadmin/BillingRequired";
 import CreateEmailTemplate from "./pages/superadmin/CreateEmailTemplate";
 import EditEmailTemplate from "./pages/superadmin/EditEmailTemplate";
 import SupportTicketView from "./pages/superadmin/SupportTicketView";
+import GymMembers from "./pages/gymadmin/members/GymMembers";
+import AddMember from "./pages/gymadmin/members/AddMember";
+import GymMemberDetail from "./pages/gymadmin/members/GymMemberDetail";
+import GymMembershipPlans from "./pages/gymadmin/members/GymMembershipPlans";
+import AddMembershipPlan from "./pages/gymadmin/members/AddMembershipPlan";
+import GymTrainers from "./pages/gymadmin/members/GymTrainer";
+import GymStaff from "./pages/gymadmin/members/GymStaff";
 
 
 
@@ -157,6 +164,15 @@ function App() {
         <Route path="pages" element={<GymPages />} />
         <Route path="pages/edit/:id" element={<EditGymPage />} />
         <Route path="setting/profile" element={<GymProfile />} />
+        <Route path="members" element={<GymMembers />} />
+        <Route path="trainers" element={<GymTrainers />} />
+        <Route path="staff" element={<GymStaff />} />
+        <Route path="members/add" element={<AddMember />} />
+        <Route path="members/:id" element={<GymMemberDetail />} />
+        <Route path="membership-plans" element={<GymMembershipPlans />} />
+        <Route path="membership-plans/add" element={<AddMembershipPlan />} />
+        {/* <Route path="membership-plans/edit/:id" element={<GymMembershipPlans />} /> */}
+        {/* <Route path="members/edit/:id" element={<EditMember />} /> */}
 
       </Route>
 

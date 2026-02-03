@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import api from "../../services/api";
-import GymLoader from "../../components/ui/GymLoader";
-import PageTitle from "../../layouts/PageTitle";
+import GymLoader from "../../../components/ui/GymLoader";
+import PageTitle from "../../../layouts/PageTitle";
+import api from "../../../services/api";
 
 const AddMember = () => {
   const [loading, setLoading] = useState(false);
@@ -22,12 +22,12 @@ const AddMember = () => {
   });
 
   /* =========================
-     LOAD MEMBERSHIP PLANS
+     LOAD PLANS
   ========================= */
   const loadPlans = async () => {
     try {
       setLoading(true);
-      const res = await api.get("/gym_admin/membership-plans/list.php");
+      const res = await api.get("/gymadmin/membership-plans/list.php");
       setPlans(res.data?.data || []);
     } catch {
       alert("Failed to load membership plans");
@@ -53,18 +53,22 @@ const AddMember = () => {
       return;
     }
 
+    const payload = {
+      ...form,
+      plan_id: Number(form.plan_id),
+      payment_amount:
+        form.payment_amount === "" ? null : Number(form.payment_amount),
+    };
+
     try {
       setSaving(true);
 
-      await api.post("/gym_admin/members/create.php", form);
+      await api.post("/gymadmin/members/create.php", payload);
 
       alert("Member added successfully");
       window.location.href = "/gym/members";
     } catch (err) {
-      alert(
-        err?.response?.data?.message ||
-        "Failed to add member"
-      );
+      alert(err?.response?.data?.message || "Failed to add member");
     } finally {
       setSaving(false);
     }
@@ -88,6 +92,7 @@ const AddMember = () => {
         <Section title="Basic Information">
           <Input
             label="First Name *"
+            required
             value={form.first_name}
             onChange={(v) => update("first_name", v)}
           />
@@ -107,6 +112,7 @@ const AddMember = () => {
 
           <Input
             label="Phone *"
+            required
             value={form.phone}
             onChange={(v) => update("phone", v)}
           />
@@ -135,14 +141,15 @@ const AddMember = () => {
         <Section title="Membership">
           <Select
             label="Membership Plan *"
+            required
             value={form.plan_id}
             onChange={(v) => update("plan_id", v)}
             options={[
               { value: "", label: "Select plan" },
               ...plans.map((p) => ({
                 value: p.id,
-                label: `${p.name} (${p.duration_days} days)`
-              }))
+                label: `${p.name} (${p.duration_days} days)`,
+              })),
             ]}
           />
 
@@ -180,6 +187,7 @@ const AddMember = () => {
         <div className="flex justify-end gap-3 pt-4">
           <button
             onClick={() => window.history.back()}
+            disabled={saving}
             className="h-10 px-4 rounded-lg border text-sm"
           >
             Cancel
@@ -188,7 +196,7 @@ const AddMember = () => {
           <button
             onClick={submit}
             disabled={saving}
-            className="h-10 px-6 rounded-lg bg-indigo-600 text-white text-sm hover:bg-indigo-700"
+            className="h-10 px-6 rounded-lg bg-indigo-600 text-white text-sm hover:bg-indigo-700 disabled:opacity-60"
           >
             {saving ? "Saving..." : "Add Member"}
           </button>
@@ -216,10 +224,10 @@ const Section = ({ title, children }) => (
   </div>
 );
 
-const Input = ({ label, value, onChange, type = "text" }) => (
+const Input = ({ label, value, onChange, type = "text", required }) => (
   <div>
     <label className="block text-sm font-medium mb-1">
-      {label}
+      {label} {required && <span className="text-rose-500">*</span>}
     </label>
     <input
       type={type}
@@ -230,10 +238,10 @@ const Input = ({ label, value, onChange, type = "text" }) => (
   </div>
 );
 
-const Select = ({ label, value, onChange, options }) => (
+const Select = ({ label, value, onChange, options, required }) => (
   <div>
     <label className="block text-sm font-medium mb-1">
-      {label}
+      {label} {required && <span className="text-rose-500">*</span>}
     </label>
     <select
       value={value}
