@@ -1,236 +1,282 @@
-import { useEffect, useMemo, useState } from "react";
-import api from "../../../services/api";
-import GymLoader from "../../../components/ui/GymLoader";
-import { Plus, DollarSign, Trash2, Pencil, Check } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { Plus, Search, Eye, Edit, Trash2, Copy, ToggleLeft, ToggleRight } from 'lucide-react';
+import { useState } from 'react';
+import ConfirmationModal from '../../../components/ui/ConfirmationModal';
+import CreatePlanModal from '../../../components/ui/CreatePlanModal';
 
 const GymMembershipPlans = () => {
-  const navigate = useNavigate();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState(null);
 
-  const [plans, setPlans] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const plans = [
+    {
+      id: '1',
+      name: 'Basic Monthly',
+      price: 49.99,
+      duration: '1 month',
+      features: ['Gym access', 'Locker', '2 classes/week'],
+      maxClasses: 8,
+      status: 'Active',
+      subscribers: 142,
+      revenue: 7098.58,
+    },
+    {
+      id: '2',
+      name: 'Premium Monthly',
+      price: 79.99,
+      duration: '1 month',
+      features: ['Full access', 'Personal locker', 'Unlimited classes', '1 PT session/month'],
+      maxClasses: null,
+      status: 'Active',
+      subscribers: 98,
+      revenue: 7839.02,
+    },
+    {
+      id: '3',
+      name: 'VIP Annual',
+      price: 899.99,
+      duration: '12 months',
+      features: ['VIP access', 'Private locker', 'Unlimited classes', '4 PT sessions/month', 'Nutrition plan'],
+      maxClasses: null,
+      status: 'Active',
+      subscribers: 34,
+      revenue: 30599.66,
+    },
+    {
+      id: '4',
+      name: 'Student Plan',
+      price: 29.99,
+      duration: '1 month',
+      features: ['Gym access', 'Shared locker', '1 class/week'],
+      maxClasses: 4,
+      status: 'Active',
+      subscribers: 67,
+      revenue: 2009.33,
+    },
+    {
+      id: '5',
+      name: 'Family Plan',
+      price: 149.99,
+      duration: '1 month',
+      features: ['Access for 4', 'Family locker', '12 classes/week total'],
+      maxClasses: 12,
+      status: 'Inactive',
+      subscribers: 0,
+      revenue: 0,
+    },
+  ];
 
-  const [planStats, setPlanStats] = useState(null);
-
-  const loadPlans = async () => {
-    try {
-      setLoading(true);
-      const res = await api.get("/gymadmin/membership-plans/list.php");
-      setPlans(res.data.data || []);
-    } catch (err) {
-      console.error(err);
-      alert("Failed to load plans");
-    } finally {
-      setLoading(false);
-    }
+  const statusColors = {
+    Active: 'bg-green-100 text-green-700',
+    Inactive: 'bg-slate-100 text-slate-700',
   };
 
-  const loadPlanStats = async () => {
-    try {
-      const res = await api.get("/gymadmin/membership-plans/stats.php");
-      setPlanStats(res.data.data || null);
-    } catch (err) {
-      console.error(err);
-      setPlanStats(null);
-    }
+  const handleCreatePlan = (planData) => {
+    console.log('Creating plan:', planData);
   };
 
-  useEffect(() => {
-    loadPlans();
-    loadPlanStats();
-  }, []);
+  const handleDeletePlan = () => {
+    console.log('Deleting plan:', selectedPlan);
+    setShowDeleteModal(false);
+    setSelectedPlan(null);
+  };
 
-  const activePlansCount = useMemo(
-    () => plans.filter((p) => (p.status || "").toLowerCase() === "active").length,
-    [plans]
-  );
+  const handleToggleStatus = (plan) => {
+    console.log('Toggling status for:', plan);
+  };
 
-  const totalRevenue = planStats
-    ? `₹${Number(planStats.total_revenue || 0).toLocaleString()}`
-    : "—";
-
-  const mrr = planStats
-    ? `₹${Number(planStats.mrr || 0).toLocaleString()}`
-    : "—";
-
-  const handleDelete = async (id) => {
-    const ok = confirm("Are you sure you want to delete this plan?");
-    if (!ok) return;
-
-    try {
-      await api.post("/gymadmin/membership-plans/delete.php", { id });
-      await loadPlans();
-      await loadPlanStats(); // ✅ refresh stats too
-    } catch (err) {
-      console.error(err);
-      alert(err?.response?.data?.message || "Delete failed");
-    }
+  const handleDuplicatePlan = (plan) => {
+    console.log('Duplicating plan:', plan);
   };
 
   return (
     <div className="space-y-6 p-5">
-      {/* HEADER */}
+      {/* Page Header */}
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-slate-900">
-            Membership Plan
-          </h1>
+          <h1 className="text-2xl font-semibold text-slate-900">Membership Plans</h1>
           <p className="text-sm text-slate-500 mt-1">
-            Manage Membership pricing and plan features
+            Create and manage membership plans for your gym
           </p>
         </div>
-
         <button
-          onClick={() => navigate("/gym/membership-plans/add")}
-          className="h-10 px-4 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 flex items-center gap-2"
+          onClick={() => setShowCreateModal(true)}
+          className="h-10 px-4 bg-purple-600 text-white rounded-lg text-sm font-medium hover:bg-purple-700 flex items-center gap-2"
         >
           <Plus className="w-4 h-4" />
-          Add Plan
+          Create Plan
         </button>
       </div>
 
-      {/* TOP STATS */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      {/* Stats */}
+      <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
+          <p className="text-sm text-slate-600 mb-1">Total Plans</p>
+          <p className="text-2xl font-semibold text-slate-900">5</p>
+        </div>
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
           <p className="text-sm text-slate-600 mb-1">Active Plans</p>
-          <p className="text-2xl font-semibold text-slate-900">
-            {activePlansCount}
-          </p>
+          <p className="text-2xl font-semibold text-slate-900">4</p>
         </div>
-
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
-          <p className="text-sm text-slate-600 mb-1">Total Revenue</p>
-          <p className="text-2xl font-semibold text-slate-900">{totalRevenue}</p>
+          <p className="text-sm text-slate-600 mb-1">Total Subscribers</p>
+          <p className="text-2xl font-semibold text-slate-900">341</p>
         </div>
-
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
-          <p className="text-sm text-slate-600 mb-1">MRR</p>
-          <p className="text-2xl font-semibold text-slate-900">{mrr}</p>
+          <p className="text-sm text-slate-600 mb-1">Monthly Revenue</p>
+          <p className="text-2xl font-semibold text-slate-900">$47.5K</p>
         </div>
       </div>
 
-      {/* LOADER */}
-      {loading && (
-        <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-10">
-          <div className="flex justify-center">
-            <GymLoader label="Loading plans..." />
+      {/* Search & Filter */}
+      <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+        <div className="flex flex-col lg:flex-row gap-3">
+          <div className="flex-1 relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <input
+              type="text"
+              placeholder="Search plans by name..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full h-10 pl-10 pr-4 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+            />
           </div>
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="h-10 px-3 pr-10 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 min-w-[140px]"
+          >
+            <option value="all">All Status</option>
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+          </select>
         </div>
-      )}
+      </div>
 
-      {/* EMPTY */}
-      {!loading && plans.length === 0 && (
-        <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-8 text-center">
-          <DollarSign className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-          <p className="text-slate-600">No plans found</p>
-        </div>
-      )}
+      {/* Plans Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+        {plans.map((plan) => (
+          <div
+            key={plan.id}
+            className="bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow"
+          >
+            {/* Plan Header */}
+            <div className="p-6 border-b border-slate-200">
+              <div className="flex items-start justify-between mb-3">
+                <div>
+                  <h3 className="text-lg font-semibold text-slate-900">{plan.name}</h3>
+                  <p className="text-xs text-slate-500 mt-1">{plan.duration}</p>
+                </div>
+                <span
+                  className={`px-2.5 py-1 rounded-full text-xs font-medium ${
+                    statusColors[plan.status]
+                  }`}
+                >
+                  {plan.status}
+                </span>
+              </div>
+              <div className="flex items-baseline gap-1">
+                <span className="text-3xl font-bold text-slate-900">${plan.price}</span>
+                <span className="text-sm text-slate-500">/
+                  {plan.duration.includes('month') ? 'mo' : 'yr'}
+                </span>
+              </div>
+            </div>
 
-      {/* PLANS GRID */}
-      {!loading && plans.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
-          {plans.map((plan) => {
-            const features = Array.isArray(plan.features_json)
-              ? plan.features_json
-              : [];
+            {/* Plan Features */}
+            <div className="p-6 border-b border-slate-200">
+              <h4 className="text-xs font-semibold text-slate-500 uppercase mb-3">Features</h4>
+              <ul className="space-y-2">
+                {plan.features.map((feature, idx) => (
+                  <li key={idx} className="flex items-start gap-2 text-sm text-slate-700">
+                    <span className="w-1 h-1 bg-purple-600 rounded-full mt-1.5 flex-shrink-0" />
+                    {feature}
+                  </li>
+                ))}
+              </ul>
+            </div>
 
-            // ✅ per-plan summary from backend stats
-            const summary = planStats?.plans_summary?.[String(plan.id)] || {
-              total: 0,
-              active: 0,
-              trial: 0,
-            };
-
-            return (
-              <div
-                key={plan.id}
-                className={`bg-white rounded-xl border-2 ${
-                  (plan.status || "").toLowerCase() === "active"
-                    ? "border-indigo-200"
-                    : "border-slate-200"
-                } shadow-sm overflow-hidden`}
-              >
-                {(plan.status || "").toLowerCase() === "active" && (
-                  <div className="bg-indigo-600 text-white text-center py-2 text-xs font-semibold">
-                    ACTIVE PLAN
-                  </div>
-                )}
-
-                <div className="p-6">
-                  <h3 className="text-lg font-semibold text-slate-900 mb-2">
-                    {plan.name}
-                  </h3>
-
-                  <div className="mb-3">
-                    <span className="text-4xl font-bold text-slate-900">
-                      ₹{plan.price}
-                    </span>
-                    <span className="text-sm text-slate-500 ml-2">
-                      {plan.billing_cycle}
-                    </span>
-                  </div>
-
-                  {/* ✅ per plan stats */}
-                  <div className="flex flex-wrap items-center gap-2 text-xs mb-5">
-                    <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-700">
-                      Total: {summary.total}
-                    </span>
-                    <span className="px-2 py-0.5 rounded-full bg-green-100 text-green-700">
-                      Active: {summary.active}
-                    </span>
-                    <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">
-                      Trial: {summary.trial}
-                    </span>
-                  </div>
-
-                  <ul className="space-y-3 mb-6">
-                    {features.length === 0 ? (
-                      <li className="text-sm text-slate-500">
-                        No features added
-                      </li>
-                    ) : (
-                      features.map((feature, idx) => (
-                        <li key={idx} className="flex items-start gap-3">
-                          <Check className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-                          <span className="text-sm text-slate-700">
-                            {feature}
-                          </span>
-                        </li>
-                      ))
-                    )}
-                  </ul>
-
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() =>
-                        navigate(`/gym/membership-plans/edit/${plan.id}`)
-                      }
-                      className="w-full h-10 rounded-lg text-sm font-medium transition-colors bg-indigo-600 text-white hover:bg-indigo-700 flex items-center justify-center gap-2"
-                    >
-                      <Pencil className="w-4 h-4" />
-                      Edit
-                    </button>
-
-                    <button
-                      onClick={() => handleDelete(plan.id)}
-                      className="h-10 px-3 rounded-lg text-sm font-medium bg-red-600 text-white hover:bg-red-700 flex items-center justify-center"
-                      title="Delete plan"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-
-                  <p className="text-xs text-slate-500 mt-3">
-                    Slug: {plan.slug}
+            {/* Plan Stats */}
+            <div className="p-6 border-b border-slate-200">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-xs text-slate-500 mb-1">Subscribers</p>
+                  <p className="text-lg font-semibold text-slate-900">{plan.subscribers}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-slate-500 mb-1">Revenue</p>
+                  <p className="text-lg font-semibold text-slate-900">
+                    ${plan.revenue.toLocaleString()}
                   </p>
                 </div>
               </div>
-            );
-          })}
-        </div>
-      )}
+            </div>
+
+            {/* Actions */}
+            <div className="p-4 flex items-center gap-2">
+              <button
+                onClick={() => handleToggleStatus(plan)}
+                className="flex-1 h-9 px-3 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg text-sm font-medium text-slate-700 flex items-center justify-center gap-2"
+                title={plan.status === 'Active' ? 'Deactivate' : 'Activate'}
+              >
+                {plan.status === 'Active' ? (
+                  <ToggleRight className="w-4 h-4" />
+                ) : (
+                  <ToggleLeft className="w-4 h-4" />
+                )}
+              </button>
+              <button
+                onClick={() => handleDuplicatePlan(plan)}
+                className="flex-1 h-9 px-3 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg text-sm font-medium text-slate-700 flex items-center justify-center gap-2"
+                title="Duplicate"
+              >
+                <Copy className="w-4 h-4" />
+              </button>
+              <button
+                className="flex-1 h-9 px-3 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg text-sm font-medium text-slate-700 flex items-center justify-center gap-2"
+                title="Edit"
+              >
+                <Edit className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => {
+                  setSelectedPlan(plan);
+                  setShowDeleteModal(true);
+                }}
+                className="flex-1 h-9 px-3 bg-red-50 hover:bg-red-100 border border-red-200 rounded-lg text-sm font-medium text-red-700 flex items-center justify-center gap-2"
+                title="Delete"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Modals */}
+      <CreatePlanModal
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        onSubmit={handleCreatePlan}
+      />
+
+      <ConfirmationModal
+        isOpen={showDeleteModal}
+        onClose={() => {
+          setShowDeleteModal(false);
+          setSelectedPlan(null);
+        }}
+        onConfirm={handleDeletePlan}
+        title="Delete Plan"
+        message={`Are you sure you want to delete "${selectedPlan?.name}"? This action cannot be undone.`}
+        confirmText="Delete"
+        confirmVariant="danger"
+      />
     </div>
   );
-};
+}
+
 
 export default GymMembershipPlans;

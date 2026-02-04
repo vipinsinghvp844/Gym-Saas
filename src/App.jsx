@@ -67,6 +67,14 @@ import GymTrainers from "./pages/gymadmin/members/GymTrainer";
 import GymStaff from "./pages/gymadmin/members/GymStaff";
 import GymClasses from "./pages/gymadmin/members/GymClasses";
 import GymCheckIn from "./pages/gymadmin/members/GymCheckIn";
+import GymSchedules from "./pages/gymadmin/members/GymSchedules";
+import GymAttendance from "./pages/gymadmin/members/GymAteendance";
+import GymRevenue from "./pages/gymadmin/members/GymRevenue";
+import GymPerformance from "./pages/gymadmin/members/GymPerformance";
+import GymAnnouncements from "./pages/gymadmin/members/GymAnnouncements";
+import GymNotifications from "./pages/gymadmin/members/GymNotifications";
+import GymSettings from "./pages/gymadmin/members/GymSettings";
+import GymRolesPermissions from "./pages/gymadmin/members/GymRolesPermissions";
 
 
 
@@ -171,10 +179,20 @@ function App() {
         <Route path="staff" element={<GymStaff />} />
         <Route path="classes" element={<GymClasses />} />
         <Route path="checkin" element={<GymCheckIn />} />
+        <Route path="schedules" element={<GymSchedules />} />
+        <Route path="reports/attendance" element={<GymAttendance />} />
+        <Route path="members" element={<GymMembers />} />
+        <Route path="reports/revenue" element={<GymRevenue />} />
+        <Route path="reports/performance" element={<GymPerformance />} />
+        <Route path="announcements" element={<GymAnnouncements />} />
+        <Route path="notifications" element={<GymNotifications />} />
+        <Route path="settings" element={<GymSettings />} />
+        <Route path="members/create" element={<AddMember />} />
         <Route path="members/add" element={<AddMember />} />
         <Route path="members/:id" element={<GymMemberDetail />} />
         <Route path="membership-plans" element={<GymMembershipPlans />} />
         <Route path="membership-plans/add" element={<AddMembershipPlan />} />
+        <Route path="roles" element={<GymRolesPermissions />} />
         {/* <Route path="membership-plans/edit/:id" element={<GymMembershipPlans />} /> */}
         {/* <Route path="members/edit/:id" element={<EditMember />} /> */}
 
