@@ -60,10 +60,10 @@ import EditEmailTemplate from "./pages/superadmin/EditEmailTemplate";
 import SupportTicketView from "./pages/superadmin/SupportTicketView";
 import GymMembers from "./pages/gymadmin/members/GymMembers";
 import AddMember from "./pages/gymadmin/members/AddMember";
-import GymMemberDetail from "./pages/gymadmin/members/GymMemberDetail";
+import GymMemberEditDetail from "./pages/gymadmin/members/GymMemberEditDetail";
 import GymMembershipPlans from "./pages/gymadmin/members/GymMembershipPlans";
 import AddMembershipPlan from "./pages/gymadmin/members/AddMembershipPlan";
-import GymTrainers from "./pages/gymadmin/members/GymTrainer";
+import GymTrainers from "./pages/gymadmin/trainers/GymTrainer";
 import GymStaff from "./pages/gymadmin/members/GymStaff";
 import GymClasses from "./pages/gymadmin/members/GymClasses";
 import GymCheckIn from "./pages/gymadmin/members/GymCheckIn";
@@ -75,6 +75,7 @@ import GymAnnouncements from "./pages/gymadmin/members/GymAnnouncements";
 import GymNotifications from "./pages/gymadmin/members/GymNotifications";
 import GymSettings from "./pages/gymadmin/members/GymSettings";
 import GymRolesPermissions from "./pages/gymadmin/members/GymRolesPermissions";
+import GymTrainerCreate from "./pages/gymadmin/trainers/GymTrainerCreate";
 
 
 
@@ -189,11 +190,12 @@ function App() {
         <Route path="settings" element={<GymSettings />} />
         <Route path="members/create" element={<AddMember />} />
         <Route path="members/add" element={<AddMember />} />
-        <Route path="members/:id" element={<GymMemberDetail />} />
+        <Route path="members/:id/edit" element={<GymMemberEditDetail />} />
+        <Route path="trainers/create" element={<GymTrainerCreate />} />
         <Route path="membership-plans" element={<GymMembershipPlans />} />
         <Route path="membership-plans/add" element={<AddMembershipPlan />} />
         <Route path="roles" element={<GymRolesPermissions />} />
-        {/* <Route path="membership-plans/edit/:id" element={<GymMembershipPlans />} /> */}
+        <Route path="membership-plans/edit/:id" element={<GymMembershipPlans />} />
         {/* <Route path="members/edit/:id" element={<EditMember />} /> */}
 
       </Route>

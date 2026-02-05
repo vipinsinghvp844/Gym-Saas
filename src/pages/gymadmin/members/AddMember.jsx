@@ -4,9 +4,10 @@ import PageTitle from "../../../layouts/PageTitle";
 import api from "../../../services/api";
 
 const AddMember = () => {
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [plans, setPlans] = useState([]);
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
 
   const [form, setForm] = useState({
     first_name: "",
@@ -26,11 +27,10 @@ const AddMember = () => {
   ========================= */
   const loadPlans = async () => {
     try {
-      setLoading(true);
       const res = await api.get("/gymadmin/membership-plans/list.php");
       setPlans(res.data?.data || []);
     } catch {
-      alert("Failed to load membership plans");
+      setError("Failed to load membership plans");
     } finally {
       setLoading(false);
     }
@@ -41,17 +41,34 @@ const AddMember = () => {
   }, []);
 
   /* =========================
-     HANDLERS
+     HELPERS
   ========================= */
   const update = (key, value) => {
     setForm((prev) => ({ ...prev, [key]: value }));
   };
 
+  const validate = () => {
+    if (!form.first_name.trim()) return "First name is required";
+    if (!form.phone.trim()) return "Phone is required";
+    if (!form.plan_id) return "Membership plan is required";
+
+    if (form.email && !/^\S+@\S+\.\S+$/.test(form.email)) {
+      return "Invalid email address";
+    }
+    return "";
+  };
+
+  /* =========================
+     SUBMIT
+  ========================= */
   const submit = async () => {
-    if (!form.first_name || !form.phone || !form.plan_id) {
-      alert("First name, phone and plan are required");
+    const msg = validate();
+    if (msg) {
+      setError(msg);
       return;
     }
+
+    setError("");
 
     const payload = {
       ...form,
@@ -62,13 +79,11 @@ const AddMember = () => {
 
     try {
       setSaving(true);
-
       await api.post("/gymadmin/members/create.php", payload);
-
       alert("Member added successfully");
       window.location.href = "/gym/members";
     } catch (err) {
-      alert(err?.response?.data?.message || "Failed to add member");
+      setError(err?.response?.data?.message || "Failed to add member");
     } finally {
       setSaving(false);
     }
@@ -81,12 +96,15 @@ const AddMember = () => {
   return (
     <div className="max-w-3xl mx-auto px-6 py-6 space-y-6">
 
-      <PageTitle
-        title="Add Member"
-        subtitle="Register new gym member"
-      />
+      <PageTitle title="Add Member" subtitle="Register new gym member" />
 
       <div className="bg-white rounded-xl p-6 shadow-sm space-y-6">
+
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg p-3">
+            {error}
+          </div>
+        )}
 
         {/* BASIC INFO */}
         <Section title="Basic Information">
@@ -210,14 +228,12 @@ const AddMember = () => {
 export default AddMember;
 
 /* =========================
-   SMALL COMPONENTS
+   SMALL COMPONENTS (UNCHANGED)
 ========================= */
 
 const Section = ({ title, children }) => (
   <div className="space-y-4">
-    <h3 className="text-sm font-semibold text-gray-800">
-      {title}
-    </h3>
+    <h3 className="text-sm font-semibold text-gray-800">{title}</h3>
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
       {children}
     </div>
@@ -233,7 +249,7 @@ const Input = ({ label, value, onChange, type = "text", required }) => (
       type={type}
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      className="w-full h-10 px-3 border rounded-lg text-sm"
+      className="w-full h-10 px-3 border rounded-lg text-sm focus:ring-2 focus:ring-indigo-500"
     />
   </div>
 );
@@ -246,7 +262,7 @@ const Select = ({ label, value, onChange, options, required }) => (
     <select
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      className="w-full h-10 px-3 border rounded-lg text-sm"
+      className="w-full h-10 px-3 border rounded-lg text-sm focus:ring-2 focus:ring-indigo-500"
     >
       {options.map((o, i) => (
         <option key={i} value={o.value}>
