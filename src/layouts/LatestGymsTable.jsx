@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import GlobalPreviewModal from "../components/ui/GlobalPreviewModal";
 import AssignPlanModal from "../components/ui/AssignPlanModal";
 import api from "../services/api";
+import { formatDateTime } from "../utils/date";
 
 const statusColors = {
   active: "bg-green-100 text-green-700",
@@ -65,7 +66,6 @@ const LatestGymsTable = ({ gyms = [] }) => {
       setAssigning(false);
     }
   };
-
   return (
     <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
       {/* HEADER */}
@@ -102,35 +102,45 @@ const LatestGymsTable = ({ gyms = [] }) => {
           <tbody className="divide-y divide-slate-200">
             {gyms.map((gym) => {
               const status = (gym.status || "inactive").toLowerCase();
-              const plan = (gym.plan_name || "free").toLowerCase();
+
+              // ✅ plan key should come from slug (basic/pro/free...)
+              const planKey = (gym.plan_slug || "").toLowerCase();
+
+              // ✅ label should show plan_name if exists, else show slug, else No Plan
+              const planLabel = gym.plan_name || (planKey ? planKey : "No Plan");
+
+              // ✅ plan badge color should use planKey (not label)
+              const planClass =
+                planKey && planColors[planKey]
+                  ? planColors[planKey]
+                  : "bg-slate-100 text-slate-700";
 
               return (
                 <tr key={gym.id} className="hover:bg-slate-50 transition-colors">
                   {/* NAME */}
                   <td className="px-6 py-4">
-                    <p className="text-sm font-medium text-slate-900">
-                      {gym.name}
-                    </p>
+                    <p className="text-sm font-medium text-slate-900">{gym.name}</p>
                     <p className="text-xs text-slate-500">Slug: {gym.slug}</p>
                   </td>
 
                   {/* PLAN */}
                   <td className="px-6 py-4">
                     <span
-                      className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-semibold ${
-                        planColors[plan] || "bg-slate-100 text-slate-700"
-                      }`}
+                      className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-semibold ${planClass}`}
                     >
-                      {plan}
+                      {planLabel}
                     </span>
+
+                    {(gym.subscription_status || "").toLowerCase() === "trial" && (
+                      <p className="text-[11px] text-amber-600 mt-1">Trial Running</p>
+                    )}
                   </td>
 
                   {/* STATUS */}
                   <td className="px-6 py-4">
                     <span
-                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        statusColors[status] || "bg-gray-100 text-gray-700"
-                      }`}
+                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusColors[status] || "bg-gray-100 text-gray-700"
+                        }`}
                     >
                       {status}
                     </span>
@@ -138,15 +148,12 @@ const LatestGymsTable = ({ gyms = [] }) => {
 
                   {/* CREATED */}
                   <td className="px-6 py-4">
-                    <p className="text-sm text-slate-600">
-                      {gym.created_at || "-"}
-                    </p>
+                    <p className="text-sm text-slate-600"> {formatDateTime(gym.created_at)}</p>
                   </td>
 
                   {/* ACTIONS */}
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-1">
-                      {/* Preview */}
                       <button
                         onClick={() => openPreview(gym)}
                         className="p-2 rounded-lg hover:bg-slate-100 text-slate-600 hover:text-indigo-600"
@@ -155,7 +162,6 @@ const LatestGymsTable = ({ gyms = [] }) => {
                         <Eye className="w-4 h-4" />
                       </button>
 
-                      {/* Assign Plan */}
                       <button
                         onClick={() => openAssignPlan(gym)}
                         className="p-2 rounded-lg hover:bg-slate-100 text-slate-600 hover:text-indigo-600"
@@ -164,7 +170,6 @@ const LatestGymsTable = ({ gyms = [] }) => {
                         <CreditCard className="w-4 h-4" />
                       </button>
 
-                      {/* Open in Gyms Module */}
                       <button
                         onClick={() => navigate("/superadmin/gyms")}
                         className="p-2 rounded-lg hover:bg-slate-100 text-slate-600 hover:text-indigo-600"
@@ -177,6 +182,7 @@ const LatestGymsTable = ({ gyms = [] }) => {
                 </tr>
               );
             })}
+
 
             {gyms.length === 0 && (
               <tr>

@@ -21,8 +21,6 @@ const statusBadge = {
 };
 
 const GlobalPreviewModal = ({ isOpen, onClose, type = "gym", data }) => {
-  console.log(data,"data");
-  
   useEffect(() => {
     if (!isOpen) return;
 
@@ -84,9 +82,8 @@ const GlobalPreviewModal = ({ isOpen, onClose, type = "gym", data }) => {
               </div>
 
               <span
-                className={`px-3 py-1 rounded-full text-sm font-semibold ${
-                  statusBadge[gymStatus] || "bg-slate-100 text-slate-700"
-                }`}
+                className={`px-3 py-1 rounded-full text-sm font-semibold ${statusBadge[gymStatus] || "bg-slate-100 text-slate-700"
+                  }`}
               >
                 {gymStatus}
               </span>
@@ -196,6 +193,79 @@ const GlobalPreviewModal = ({ isOpen, onClose, type = "gym", data }) => {
           </div>
         );
       }
+    case "member": {
+  const member = data?.member || {};
+  const subscription = data?.subscription;
+  const payments = data?.payments;
+  const attendance = data?.attendance;
+
+  const fullName = member.name || "Member";
+  const status = (member.status || "active").toLowerCase();
+
+  return (
+    <div className="space-y-6">
+
+      {/* HEADER */}
+      <div className="flex items-start gap-4">
+        <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center text-white text-xl font-bold">
+          {getInitials(fullName)}
+        </div>
+
+        <div className="flex-1">
+          <h3 className="text-xl font-semibold">{fullName}</h3>
+          <p className="text-sm text-slate-500">Member ID: #{member.id}</p>
+        </div>
+
+        <span className={`px-3 py-1 rounded-full text-sm ${statusBadge[status]}`}>
+          {status}
+        </span>
+      </div>
+
+      {/* BASIC INFO */}
+      <Section title="Basic Information">
+        <Row icon={Mail} label="Email" value={member.email} />
+        <Row icon={Phone} label="Phone" value={member.phone} />
+        <Row icon={Calendar} label="Joined On" value={member.joined_at} />
+      </Section>
+
+      {/* MEMBERSHIP */}
+      <Section title="Membership">
+        {subscription ? (
+          <>
+            <Row icon={Crown} label="Plan" value={subscription.plan_name} />
+            <Row label="Start Date" value={subscription.start_date} />
+            <Row label="End Date" value={subscription.end_date} />
+            <Row label="Days Left" value={`${subscription.days_left} days`} />
+          </>
+        ) : (
+          <Empty text="No active membership" />
+        )}
+      </Section>
+
+      {/* PAYMENTS */}
+      <Section title="Payments">
+        <Row label="Total Paid" value={`₹${payments?.total_paid || 0}`} />
+        <Row
+          label="Last Payment"
+          value={
+            payments?.last_payment
+              ? `${payments.last_payment.amount} (${payments.last_payment.payment_method})`
+              : "—"
+          }
+        />
+      </Section>
+
+      {/* ATTENDANCE */}
+      <Section title="Attendance">
+        <Row label="Total Present" value={attendance?.total_present || 0} />
+        <Row label="Last Visit" value={attendance?.last_visit || "—"} />
+      </Section>
+
+    </div>
+  );
+}
+
+
 
       default:
         return (
@@ -233,5 +303,26 @@ const GlobalPreviewModal = ({ isOpen, onClose, type = "gym", data }) => {
     </div>
   );
 };
+const Section = ({ title, children }) => (
+  <div className="border-t pt-5 space-y-3">
+    <h4 className="text-xs font-semibold uppercase text-slate-500">{title}</h4>
+    {children}
+  </div>
+);
+
+const Row = ({ icon: Icon, label, value }) => (
+  <div className="flex gap-3 items-start text-sm">
+    {Icon && <Icon className="w-4 h-4 text-slate-400 mt-0.5" />}
+    <div>
+      <p className="text-xs text-slate-500">{label}</p>
+      <p className="font-medium text-slate-900">{value || "—"}</p>
+    </div>
+  </div>
+);
+
+const Empty = ({ text }) => (
+  <p className="text-sm text-slate-400">{text}</p>
+);
+
 
 export default GlobalPreviewModal;

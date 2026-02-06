@@ -1,299 +1,377 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
 import api from "../../services/api";
-import PageHeader from "../../components/ui/PageHeader";
 import GymLoader from "../../components/ui/GymLoader";
-import { Plus, Save, Trash2, Loader2, ArrowLeft } from "lucide-react";
+import { Plus, Search, Eye, Trash2, Pencil, X } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
-const availableSections = [
-  { type: "header", label: "Header", fields: { logo_text: "", menu: "", button: "" } },
-  { type: "hero", label: "Hero", fields: { title: "", subtitle: "", button_text: "" } },
-  { type: "features", label: "Features", fields: { heading: "", items: "" } },
-  { type: "pricing", label: "Pricing", fields: { heading: "", plans: "" } },
-  { type: "testimonials", label: "Testimonials", fields: { heading: "", items: "" } },
-  { type: "gallery", label: "Gallery", fields: { heading: "", images: "" } },
-  { type: "cta", label: "CTA", fields: { text: "", button: "" } },
-  { type: "register_form", label: "Register Form", fields: { submit_text: "" } },
-  { type: "footer", label: "Footer", fields: { logo: "", social: "", link_text: "" } },
-];
-
-const EditTemplate = () => {
-  const { id } = useParams();
+const EmailTemplates = () => {
   const navigate = useNavigate();
 
+  const [items, setItems] = useState([]);
+  const [stats, setStats] = useState(null);
+
   const [loading, setLoading] = useState(false);
-  const [saving, setSaving] = useState(false);
 
-  const [name, setName] = useState("");
-  const [type, setType] = useState("platform");
+  // pagination
+  const [page, setPage] = useState(1);
+  const [limit] = useState(10);
+  const [pages, setPages] = useState(1);
+  const [total, setTotal] = useState(0);
 
-  const [sections, setSections] = useState([]); // [{id,type,title,data:{}}]
+  // filters
+  const [status, setStatus] = useState("all");
+  const [search, setSearch] = useState("");
 
-  const sectionTypeCounts = useMemo(() => {
-    const counts = {};
-    for (const s of sections) counts[s.type] = (counts[s.type] || 0) + 1;
-    return counts;
-  }, [sections]);
+  // preview modal
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewTpl, setPreviewTpl] = useState(null);
 
-  useEffect(() => {
-    loadTemplate();
-  }, [id]);
+  const loadStats = async () => {
+    try {
+      const res = await api.get("/email-templates/stats.php");
+      setStats(res.data.data || null);
+    } catch {
+      setStats(null);
+    }
+  };
 
-  const loadTemplate = async () => {
+  const loadList = async () => {
     try {
       setLoading(true);
-      const res = await api.get(`/templatess/get.php?id=${id}`);
-      const tpl = res.data.data;
 
-      setName(tpl.name || "");
-      setType(tpl.type || "platform");
+      const res = await api.get(
+        `/email-templates/list.php?status=${encodeURIComponent(
+          status
+        )}&search=${encodeURIComponent(search)}&page=${page}&limit=${limit}`
+      );
 
-      const structure = JSON.parse(tpl.structure_json || "{}");
-      const pageData = JSON.parse(tpl.page_data_json || "{}");
+      const payload = res.data.data || {};
+      setItems(payload.items || []);
 
-      // ✅ rebuild sections editor model
-      const rebuilt = (structure.sections || []).map((s, index) => {
-        const defaultFields =
-          availableSections.find((x) => x.type === s.type)?.fields || {};
-
-        return {
-          id: s.id || `${s.type}_${index}`,
-          type: s.type,
-          title: `${s.type} ${index + 1}`,
-          data: pageData[s.id] || pageData[s.type] || { ...defaultFields },
-        };
-      });
-
-      setSections(rebuilt);
+      setPage(payload.pagination?.page || 1);
+      setPages(payload.pagination?.pages || 1);
+      setTotal(payload.pagination?.total || 0);
     } catch (err) {
       console.error(err);
-      alert("Failed to load template");
+      alert("Failed to load templates");
     } finally {
       setLoading(false);
     }
   };
 
-  const addSection = (sec) => {
-    const count = (sectionTypeCounts[sec.type] || 0) + 1;
+  useEffect(() => {
+    loadStats();
+  }, []);
 
-    setSections((prev) => [
-      ...prev,
-      {
-        id: `${sec.type}_${Date.now()}`,
-        type: sec.type,
-        title: `${sec.label} ${count}`,
-        data: { ...sec.fields },
-      },
-    ]);
-  };
+  useEffect(() => {
+    const t = setTimeout(() => {
+      loadList();
+    }, 350);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line
+  }, [status, search, page]);
 
-  const updateField = (index, field, value) => {
-    setSections((prev) => {
-      const updated = [...prev];
-      updated[index] = {
-        ...updated[index],
-        data: { ...updated[index].data, [field]: value },
-      };
-      return updated;
-    });
-  };
-
-  const removeSection = (index) => {
-    setSections((prev) => prev.filter((_, i) => i !== index));
-  };
-
-  const save = async () => {
-    if (!name.trim()) return alert("Template name required");
-    if (sections.length === 0) return alert("Please add at least one section");
-
+  const openPreview = async (id) => {
     try {
-      setSaving(true);
-
-      const structure_json = {
-        sections: sections.map((s) => ({ id: s.id, type: s.type })),
-      };
-
-      const page_data_json = {};
-      sections.forEach((s) => {
-        page_data_json[s.id] = s.data;
-      });
-
-      await api.post("/templatess/update.php", {
-        id,
-        name: name.trim(),
-        type,
-        structure_json,
-        page_data_json,
-      });
-
-      alert("Template updated ✅");
-      navigate("/superadmin/templates");
+      setPreviewOpen(true);
+      setPreviewTpl(null);
+      const res = await api.get(`/email-templates/get.php?id=${id}`);
+      setPreviewTpl(res.data.data || null);
     } catch (err) {
       console.error(err);
-      alert(err?.response?.data?.message || "Update failed");
-    } finally {
-      setSaving(false);
+      alert("Failed to load preview");
+      setPreviewOpen(false);
     }
   };
 
-  if (loading) {
-    return (
-      <div className="p-8 flex justify-center">
-        <GymLoader label="Loading template..." />
-      </div>
-    );
-  }
+  const closePreview = () => {
+    setPreviewOpen(false);
+    setPreviewTpl(null);
+  };
+
+  const handleDelete = async (id) => {
+    const ok = confirm("Delete this email template?");
+    if (!ok) return;
+
+    try {
+      await api.post("/email-templates/delete.php", { id });
+      await loadList();
+      await loadStats();
+      alert("Deleted ✅");
+    } catch (err) {
+      console.error(err);
+      alert(err?.response?.data?.message || "Delete failed");
+    }
+  };
+
+  const statusBadge = (s) => {
+    const st = (s || "").toLowerCase();
+    if (st === "active") return "bg-green-100 text-green-700";
+    return "bg-slate-100 text-slate-700";
+  };
+
+  const showingText = useMemo(() => {
+    return `${items.length} shown • Total ${total}`;
+  }, [items, total]);
 
   return (
-    <div className="p-5 space-y-6">
-      <div className="flex items-center justify-between gap-3">
-        <PageHeader title="Edit Template" subtitle={`Template ID: ${id}`} />
+    <div className="space-y-6 p-5">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-semibold text-slate-900">
+            Email Templates
+          </h1>
+          <p className="text-sm text-slate-500 mt-1">
+            Create and manage reusable email templates
+          </p>
+        </div>
 
         <button
-          onClick={() => navigate("/superadmin/templates")}
-          className="h-10 px-4 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-sm font-semibold flex items-center gap-2"
+          onClick={() => navigate("/superadmin/email-templates/create")}
+          className="h-10 px-4 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 flex items-center gap-2"
         >
-          <ArrowLeft className="w-4 h-4" />
-          Back
+          <Plus className="w-4 h-4" />
+          Create Template
         </button>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
-        {/* Left Panel */}
-        <div className="lg:col-span-4">
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 space-y-5">
-            <div>
-              <label className="block text-xs font-semibold text-slate-600 mb-1">
-                Template Name
-              </label>
-              <input
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="w-full h-10 px-3 rounded-xl border border-slate-200 text-sm outline-none focus:ring-2 focus:ring-indigo-500"
-              />
-            </div>
+      {/* Stats */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
+          <p className="text-sm text-slate-600 mb-1">Total</p>
+          <p className="text-2xl font-semibold text-slate-900">
+            {stats?.total ?? "—"}
+          </p>
+        </div>
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
+          <p className="text-sm text-slate-600 mb-1">Active</p>
+          <p className="text-2xl font-semibold text-slate-900">
+            {stats?.active ?? "—"}
+          </p>
+        </div>
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
+          <p className="text-sm text-slate-600 mb-1">Inactive</p>
+          <p className="text-2xl font-semibold text-slate-900">
+            {stats?.inactive ?? "—"}
+          </p>
+        </div>
+      </div>
 
-            <div>
-              <label className="block text-xs font-semibold text-slate-600 mb-1">
-                Template Type
-              </label>
-              <select
-                value={type}
-                onChange={(e) => setType(e.target.value)}
-                className="w-full h-10 px-3 rounded-xl border border-slate-200 text-sm outline-none focus:ring-2 focus:ring-indigo-500"
-              >
-                <option value="platform">Platform (Marketing Website)</option>
-                <option value="gym">Gym Website</option>
-              </select>
-            </div>
+      {/* Filters */}
+      <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-4 flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
+        <select
+          value={status}
+          onChange={(e) => {
+            setPage(1);
+            setStatus(e.target.value);
+          }}
+          className="h-10 px-3 rounded-lg border border-slate-200 text-sm outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+        >
+          <option value="all">All</option>
+          <option value="active">Active</option>
+          <option value="inactive">Inactive</option>
+        </select>
 
-            <div>
-              <div className="flex items-center justify-between">
-                <p className="text-sm font-semibold text-slate-900">Add Sections</p>
-                <span className="text-xs text-slate-500">Total: {sections.length}</span>
-              </div>
+        <div className="relative w-full sm:w-80">
+          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+          <input
+            value={search}
+            onChange={(e) => {
+              setPage(1);
+              setSearch(e.target.value);
+            }}
+            placeholder="Search slug / name / subject..."
+            className="w-full h-10 pl-9 pr-3 rounded-lg border border-slate-200 text-sm outline-none focus:ring-2 focus:ring-indigo-500"
+          />
+        </div>
+      </div>
 
-              <div className="flex flex-wrap gap-2 mt-3">
-                {availableSections.map((sec) => (
-                  <button
-                    key={sec.type}
-                    onClick={() => addSection(sec)}
-                    className="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-200 text-sm text-slate-700 hover:bg-slate-50"
-                  >
-                    <Plus className="w-4 h-4" />
-                    {sec.label}
-                  </button>
-                ))}
-              </div>
-            </div>
+      {/* Table */}
+      <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        <div className="px-6 py-3 border-b border-slate-200 flex items-center justify-between">
+          <p className="text-sm text-slate-600">{showingText}</p>
 
+          <div className="flex items-center gap-2">
             <button
-              onClick={save}
-              disabled={saving}
-              className={`w-full h-11 rounded-2xl text-sm font-semibold flex items-center justify-center gap-2 ${
-                saving
-                  ? "bg-indigo-300 text-white cursor-not-allowed"
-                  : "bg-indigo-600 text-white hover:bg-indigo-700"
-              }`}
+              disabled={page <= 1}
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              className="h-9 px-3 rounded-lg border border-slate-200 text-sm disabled:opacity-40"
             >
-              {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-              {saving ? "Saving..." : "Update Template"}
+              Prev
+            </button>
+            <button
+              disabled={page >= pages}
+              onClick={() => setPage((p) => Math.min(pages, p + 1))}
+              className="h-9 px-3 rounded-lg border border-slate-200 text-sm disabled:opacity-40"
+            >
+              Next
             </button>
           </div>
         </div>
 
-        {/* Right Panel */}
-        <div className="lg:col-span-8">
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-            <div className="px-5 py-4 border-b border-slate-200">
-              <h3 className="text-base font-semibold text-slate-900">
-                Template Structure
-              </h3>
-              <p className="text-sm text-slate-500">
-                Edit section values below (drag/drop ordering next step)
-              </p>
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-slate-50 border-b border-slate-200">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                  Template
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                  Slug
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                  Status
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                  Actions
+                </th>
+              </tr>
+            </thead>
+
+            <tbody className="divide-y divide-slate-200">
+              {loading && (
+                <tr>
+                  <td colSpan="4" className="py-10">
+                    <div className="flex justify-center">
+                      <GymLoader label="Loading templates..." />
+                    </div>
+                  </td>
+                </tr>
+              )}
+
+              {!loading && items.length === 0 && (
+                <tr>
+                  <td
+                    colSpan="4"
+                    className="px-6 py-10 text-center text-sm text-slate-500"
+                  >
+                    No templates found.
+                  </td>
+                </tr>
+              )}
+
+              {!loading &&
+                items.map((t) => (
+                  <tr key={t.id} className="hover:bg-slate-50">
+                    <td className="px-6 py-4">
+                      <p className="text-sm font-semibold text-slate-900">
+                        {t.name}
+                      </p>
+                      <p className="text-xs text-slate-500">{t.subject}</p>
+                    </td>
+
+                    <td className="px-6 py-4">
+                      <p className="text-sm font-mono text-slate-700">
+                        {t.slug}
+                      </p>
+                    </td>
+
+                    <td className="px-6 py-4">
+                      <span
+                        className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-semibold ${statusBadge(
+                          t.status
+                        )}`}
+                      >
+                        {t.status}
+                      </span>
+                    </td>
+
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => openPreview(t.id)}
+                          className="h-9 px-3 rounded-lg border border-slate-200 text-sm hover:bg-slate-100 flex items-center gap-2"
+                        >
+                          <Eye className="w-4 h-4" />
+                          Preview
+                        </button>
+
+                        <button
+                          onClick={() =>
+                            navigate(`/superadmin/email-templates/edit/${t.id}`)
+                          }
+                          className="h-9 px-3 rounded-lg border border-slate-200 text-sm hover:bg-slate-100 flex items-center gap-2"
+                        >
+                          <Pencil className="w-4 h-4" />
+                          Edit
+                        </button>
+
+                        <button
+                          onClick={() => handleDelete(t.id)}
+                          className="h-9 px-3 rounded-lg bg-red-600 text-white text-sm hover:bg-red-700 flex items-center gap-2"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                          Delete
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Preview Modal */}
+      {previewOpen && (
+        <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
+          <div className="w-full max-w-3xl bg-white rounded-2xl border border-slate-200 shadow-xl overflow-hidden">
+            <div className="px-5 py-4 border-b border-slate-200 flex items-start justify-between">
+              <div>
+                <h3 className="text-base font-semibold text-slate-900">
+                  Email Preview
+                </h3>
+                <p className="text-sm text-slate-500">
+                  {previewTpl?.name || "Loading..."}
+                </p>
+              </div>
+
+              <button
+                onClick={closePreview}
+                className="h-9 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-sm flex items-center gap-2"
+              >
+                <X className="w-4 h-4" />
+                Close
+              </button>
             </div>
 
             <div className="p-5 space-y-4">
-              {sections.length === 0 ? (
-                <div className="border border-dashed border-slate-300 rounded-2xl p-8 text-center">
-                  <p className="text-sm font-semibold text-slate-700">
-                    No sections in this template
-                  </p>
-                  <p className="text-xs text-slate-500 mt-1">
-                    Add sections from the left panel.
-                  </p>
+              {!previewTpl ? (
+                <div className="py-10 flex justify-center">
+                  <GymLoader label="Loading preview..." />
                 </div>
               ) : (
-                sections.map((sec, i) => (
-                  <div
-                    key={sec.id}
-                    className="rounded-2xl border border-slate-200 bg-slate-50 p-4"
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <p className="text-sm font-semibold text-slate-900">
-                          {i + 1}. {sec.type}
-                        </p>
-                        <p className="text-xs text-slate-500">Section ID: {sec.id}</p>
-                      </div>
-
-                      <button
-                        onClick={() => removeSection(i)}
-                        className="h-9 px-3 rounded-xl bg-white border border-slate-200 text-slate-700 hover:bg-red-50 hover:text-red-700 flex items-center gap-2 text-sm"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                        Remove
-                      </button>
-                    </div>
-
-                    <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
-                      {Object.keys(sec.data).map((field) => (
-                        <div key={field} className="space-y-1">
-                          <label className="block text-xs font-semibold text-slate-600">
-                            {field.replaceAll("_", " ")}
-                          </label>
-                          <input
-                            value={sec.data[field]}
-                            onChange={(e) => updateField(i, field, e.target.value)}
-                            className="w-full h-10 px-3 rounded-xl border border-slate-200 text-sm outline-none focus:ring-2 focus:ring-indigo-500"
-                          />
-                        </div>
-                      ))}
-                    </div>
+                <>
+                  <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                    <p className="text-xs text-slate-500">Subject</p>
+                    <p className="text-sm font-semibold text-slate-900">
+                      {previewTpl.subject}
+                    </p>
+                    <p className="text-xs text-slate-400 mt-1">
+                      Variables:{" "}
+                      {previewTpl.variables_json
+                        ? previewTpl.variables_json
+                        : "[]"}
+                    </p>
                   </div>
-                ))
-              )}
-            </div>
 
-            <div className="px-5 py-4 border-t border-slate-200 text-xs text-slate-500">
-              Next: drag/drop section order + preview mode ✅
+                  <div className="rounded-xl border border-slate-200 overflow-hidden">
+                    <div className="px-4 py-2 bg-slate-50 border-b border-slate-200 text-xs font-semibold text-slate-600">
+                      Body HTML Preview
+                    </div>
+                    <div
+                      className="p-4"
+                      dangerouslySetInnerHTML={{ __html: previewTpl.body_html }}
+                    />
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };
 
-export default EditTemplate;
+export default EmailTemplates;

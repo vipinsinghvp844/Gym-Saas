@@ -6,8 +6,11 @@ import { useNavigate } from "react-router-dom";
 
 const Plans = () => {
   const navigate = useNavigate();
+
   const [plans, setPlans] = useState([]);
   const [loading, setLoading] = useState(false);
+
+  const [planStats, setPlanStats] = useState(null);
 
   const loadPlans = async () => {
     try {
@@ -22,17 +25,33 @@ const Plans = () => {
     }
   };
 
+  const loadPlanStats = async () => {
+    try {
+      const res = await api.get("/billing/plans/stats.php");
+      setPlanStats(res.data.data || null);
+    } catch (err) {
+      console.error(err);
+      setPlanStats(null);
+    }
+  };
+
   useEffect(() => {
     loadPlans();
+    loadPlanStats();
   }, []);
 
   const activePlansCount = useMemo(
-    () => plans.filter((p) => p.status === "active").length,
+    () => plans.filter((p) => (p.status || "").toLowerCase() === "active").length,
     [plans]
   );
 
-  const totalRevenue = "—"; // later from payments/subscriptions analytics
-  const mrr = "—"; // later calculate
+  const totalRevenue = planStats
+    ? `₹${Number(planStats.total_revenue || 0).toLocaleString()}`
+    : "—";
+
+  const mrr = planStats
+    ? `₹${Number(planStats.mrr || 0).toLocaleString()}`
+    : "—";
 
   const handleDelete = async (id) => {
     const ok = confirm("Are you sure you want to delete this plan?");
@@ -40,7 +59,8 @@ const Plans = () => {
 
     try {
       await api.post("/billing/plans/delete.php", { id });
-      loadPlans();
+      await loadPlans();
+      await loadPlanStats(); // ✅ refresh stats too
     } catch (err) {
       console.error(err);
       alert(err?.response?.data?.message || "Delete failed");
@@ -49,6 +69,7 @@ const Plans = () => {
 
   return (
     <div className="space-y-6 p-5">
+      {/* HEADER */}
       <div className="flex items-start justify-between">
         <div>
           <h1 className="text-2xl font-semibold text-slate-900">
@@ -68,7 +89,7 @@ const Plans = () => {
         </button>
       </div>
 
-      {/* STATS */}
+      {/* TOP STATS */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
           <p className="text-sm text-slate-600 mb-1">Active Plans</p>
@@ -105,7 +126,7 @@ const Plans = () => {
         </div>
       )}
 
-      {/* PLANS GRID (same style as your GymPlans cards) */}
+      {/* PLANS GRID */}
       {!loading && plans.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
           {plans.map((plan) => {
@@ -113,16 +134,23 @@ const Plans = () => {
               ? plan.features_json
               : [];
 
+            // ✅ per-plan summary from backend stats
+            const summary = planStats?.plans_summary?.[String(plan.id)] || {
+              total: 0,
+              active: 0,
+              trial: 0,
+            };
+
             return (
               <div
                 key={plan.id}
                 className={`bg-white rounded-xl border-2 ${
-                  plan.status === "active"
+                  (plan.status || "").toLowerCase() === "active"
                     ? "border-indigo-200"
                     : "border-slate-200"
                 } shadow-sm overflow-hidden`}
               >
-                {plan.status === "active" && (
+                {(plan.status || "").toLowerCase() === "active" && (
                   <div className="bg-indigo-600 text-white text-center py-2 text-xs font-semibold">
                     ACTIVE PLAN
                   </div>
@@ -133,12 +161,25 @@ const Plans = () => {
                     {plan.name}
                   </h3>
 
-                  <div className="mb-6">
+                  <div className="mb-3">
                     <span className="text-4xl font-bold text-slate-900">
                       ₹{plan.price}
                     </span>
                     <span className="text-sm text-slate-500 ml-2">
                       {plan.billing_cycle}
+                    </span>
+                  </div>
+
+                  {/* ✅ per plan stats */}
+                  <div className="flex flex-wrap items-center gap-2 text-xs mb-5">
+                    <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-700">
+                      Total: {summary.total}
+                    </span>
+                    <span className="px-2 py-0.5 rounded-full bg-green-100 text-green-700">
+                      Active: {summary.active}
+                    </span>
+                    <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">
+                      Trial: {summary.trial}
                     </span>
                   </div>
 
@@ -173,6 +214,7 @@ const Plans = () => {
                     <button
                       onClick={() => handleDelete(plan.id)}
                       className="h-10 px-3 rounded-lg text-sm font-medium bg-red-600 text-white hover:bg-red-700 flex items-center justify-center"
+                      title="Delete plan"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import api from "../../services/api";
 import GymLoader from "../../components/ui/GymLoader";
+import TablePagination from "../../components/ui/TablePagination";
 import { Download, Plus, X, CheckCircle } from "lucide-react";
 
 const statusBadge = (status) => {
@@ -14,7 +15,8 @@ const statusBadge = (status) => {
 };
 
 const formatMoney = (amount, currency = "INR") => {
-  const symbol = currency === "INR" ? "₹" : currency === "USD" ? "$" : `${currency} `;
+  const symbol =
+    currency === "INR" ? "₹" : currency === "USD" ? "$" : `${currency} `;
   return `${symbol}${Number(amount || 0).toLocaleString()}`;
 };
 
@@ -35,19 +37,27 @@ const Invoices = () => {
   const [invoices, setInvoices] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // filters
+  // ✅ filters
   const [status, setStatus] = useState("all");
   const [search, setSearch] = useState("");
 
-  // create invoice modal
+  // ✅ pagination
+  const [pagination, setPagination] = useState({
+    page: 1,
+    limit: 10,
+    total: 0,
+    totalPages: 1,
+  });
+
+  // ✅ create invoice modal
   const [createOpen, setCreateOpen] = useState(false);
   const [creating, setCreating] = useState(false);
 
-  // gyms dropdown
+  // ✅ gyms dropdown
   const [gyms, setGyms] = useState([]);
   const [loadingGyms, setLoadingGyms] = useState(false);
 
-  // plans dropdown
+  // ✅ plans dropdown
   const [plans, setPlans] = useState([]);
   const [loadingPlans, setLoadingPlans] = useState(false);
 
@@ -60,25 +70,38 @@ const Invoices = () => {
     notes: "",
   });
 
-  // mark paid modal
+  // ✅ mark paid modal
   const [payOpen, setPayOpen] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState(null);
   const [paying, setPaying] = useState(false);
+
   const [payForm, setPayForm] = useState({
     payment_method: "upi",
     payment_ref: "",
     transaction_id: "",
   });
 
-  const loadInvoices = async () => {
+  /* =========================
+     ✅ Load invoices (with pagination)
+  ========================= */
+  const loadInvoices = async (page = 1, limit = 10) => {
     try {
       setLoading(true);
-      const res = await api.get(
-        `/invoices/list.php?status=${encodeURIComponent(
-          status
-        )}&search=${encodeURIComponent(search)}`
-      );
+
+      const params = {
+        page,
+        limit,
+      };
+
+      if (status !== "all") params.status = status;
+      if (search.trim() !== "") params.search = search.trim();
+
+      const res = await api.get("/invoices/list.php", { params });
+
       setInvoices(res.data.data || []);
+      setPagination(
+        res.data.pagination || { page, limit, total: 0, totalPages: 1 }
+      );
     } catch (err) {
       console.error(err);
       alert("Failed to load invoices");
@@ -113,20 +136,26 @@ const Invoices = () => {
     }
   };
 
+  /* ✅ initial load */
+  useEffect(() => {
+    loadInvoices(1, pagination.limit);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  /* ✅ debounce filters */
   useEffect(() => {
     const t = setTimeout(() => {
-      loadInvoices();
+      loadInvoices(1, pagination.limit);
     }, 400);
 
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status, search]);
 
-  useEffect(() => {
-    loadInvoices();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
+  /* =========================
+     ⚠️ Stats from current page only
+     (After pagination you should make backend stats API)
+  ========================= */
   const stats = useMemo(() => {
     const total = invoices.length;
 
@@ -188,7 +217,7 @@ const Invoices = () => {
 
       alert("Invoice created ✅");
       closeCreate();
-      loadInvoices();
+      loadInvoices(1, pagination.limit);
     } catch (err) {
       console.error(err);
       alert(err?.response?.data?.message || "Create invoice failed");
@@ -227,7 +256,7 @@ const Invoices = () => {
 
       alert("Invoice Paid ✅ Payment Created ✅");
       closePayModal();
-      loadInvoices();
+      loadInvoices(pagination.page, pagination.limit);
     } catch (err) {
       console.error(err);
       alert(err?.response?.data?.message || "Mark paid failed");
@@ -257,19 +286,17 @@ const Invoices = () => {
 
       {/* Filters */}
       <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-4 flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
-        <div className="flex items-center gap-2">
-          <select
-            value={status}
-            onChange={(e) => setStatus(e.target.value)}
-            className="h-10 px-3 rounded-lg border border-slate-200 text-sm outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
-          >
-            <option value="all">All Invoices</option>
-            <option value="paid">Paid</option>
-            <option value="unpaid">Unpaid</option>
-            <option value="void">Void</option>
-            <option value="refunded">Refunded</option>
-          </select>
-        </div>
+        <select
+          value={status}
+          onChange={(e) => setStatus(e.target.value)}
+          className="h-10 px-3 rounded-lg border border-slate-200 text-sm outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+        >
+          <option value="all">All Invoices</option>
+          <option value="paid">Paid</option>
+          <option value="unpaid">Unpaid</option>
+          <option value="void">Void</option>
+          <option value="refunded">Refunded</option>
+        </select>
 
         <input
           value={search}
@@ -279,10 +306,10 @@ const Invoices = () => {
         />
       </div>
 
-      {/* Stats */}
+      {/* Stats (page stats only) */}
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
-          <p className="text-sm text-slate-600 mb-1">Total Invoices</p>
+          <p className="text-sm text-slate-600 mb-1">Invoices (This Page)</p>
           <p className="text-2xl font-semibold text-slate-900">{stats.total}</p>
         </div>
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
@@ -301,119 +328,136 @@ const Invoices = () => {
 
       {/* Table */}
       <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-        <table className="w-full">
-          <thead className="bg-slate-50 border-b border-slate-200">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
-                Invoice #
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
-                Gym
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
-                Amount
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
-                Status
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
-                Issue Date
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
-                Actions
-              </th>
-            </tr>
-          </thead>
-
-          <tbody className="divide-y divide-slate-200">
-            {loading && (
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-slate-50 border-b border-slate-200">
               <tr>
-                <td colSpan="6" className="py-10">
-                  <div className="flex justify-center">
-                    <GymLoader label="Loading invoices..." />
-                  </div>
-                </td>
+                <th className="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                  Invoice #
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                  Gym
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                  Amount
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                  Status
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                  Issue Date
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                  Actions
+                </th>
               </tr>
-            )}
+            </thead>
 
-            {!loading && invoices.length === 0 && (
-              <tr>
-                <td colSpan="6" className="px-6 py-10 text-center text-sm text-slate-500">
-                  No invoices found.
-                </td>
-              </tr>
-            )}
+            <tbody className="divide-y divide-slate-200">
+              {loading && (
+                <tr>
+                  <td colSpan="6" className="py-10">
+                    <div className="flex justify-center">
+                      <GymLoader label="Loading invoices..." />
+                    </div>
+                  </td>
+                </tr>
+              )}
 
-            {!loading &&
-              invoices.map((inv) => {
-                const isPaid = (inv.status || "").toLowerCase() === "paid";
+              {!loading && invoices.length === 0 && (
+                <tr>
+                  <td
+                    colSpan="6"
+                    className="px-6 py-10 text-center text-sm text-slate-500"
+                  >
+                    No invoices found.
+                  </td>
+                </tr>
+              )}
 
-                return (
-                  <tr key={inv.id} className="hover:bg-slate-50">
-                    <td className="px-6 py-4">
-                      <p className="text-sm font-mono font-semibold text-slate-900">
-                        {inv.invoice_number}
-                      </p>
-                      <p className="text-xs text-slate-500">ID: {inv.id}</p>
-                    </td>
+              {!loading &&
+                invoices.map((inv) => {
+                  const isPaid = (inv.status || "").toLowerCase() === "paid";
 
-                    <td className="px-6 py-4">
-                      <p className="text-sm font-semibold text-slate-900">
-                        {inv.gym_name || "-"}
-                      </p>
-                      {inv.plan_name ? (
-                        <p className="text-xs text-slate-500">Plan: {inv.plan_name}</p>
-                      ) : null}
-                    </td>
+                  return (
+                    <tr key={inv.id} className="hover:bg-slate-50">
+                      <td className="px-6 py-4">
+                        <p className="text-sm font-mono font-semibold text-slate-900">
+                          {inv.invoice_number}
+                        </p>
+                        <p className="text-xs text-slate-500">ID: {inv.id}</p>
+                      </td>
 
-                    <td className="px-6 py-4">
-                      <p className="text-sm font-semibold text-slate-900">
-                        {formatMoney(inv.amount, inv.currency)}
-                      </p>
-                    </td>
+                      <td className="px-6 py-4">
+                        <p className="text-sm font-semibold text-slate-900">
+                          {inv.gym_name || "-"}
+                        </p>
+                        {inv.plan_name ? (
+                          <p className="text-xs text-slate-500">
+                            Plan: {inv.plan_name}
+                          </p>
+                        ) : null}
+                      </td>
 
-                    <td className="px-6 py-4">
-                      <span
-                        className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-semibold ${statusBadge(
-                          inv.status
-                        )}`}
-                      >
-                        {inv.status}
-                      </span>
-                    </td>
+                      <td className="px-6 py-4">
+                        <p className="text-sm font-semibold text-slate-900">
+                          {formatMoney(inv.amount, inv.currency)}
+                        </p>
+                      </td>
 
-                    <td className="px-6 py-4">
-                      <p className="text-sm text-slate-600">
-                        {formatDate(inv.issued_at || inv.created_at)}
-                      </p>
-                    </td>
-
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-2">
-                        <button
-                          className="p-2 rounded-lg hover:bg-slate-100 text-slate-600 hover:text-indigo-600"
-                          title="Download Invoice (next step)"
-                          onClick={() => alert("PDF download next step ✅")}
+                      <td className="px-6 py-4">
+                        <span
+                          className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-semibold ${statusBadge(
+                            inv.status
+                          )}`}
                         >
-                          <Download className="w-4 h-4" />
-                        </button>
+                          {inv.status}
+                        </span>
+                      </td>
 
-                        {!isPaid && (
+                      <td className="px-6 py-4">
+                        <p className="text-sm text-slate-600">
+                          {formatDate(inv.issued_at || inv.created_at)}
+                        </p>
+                      </td>
+
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-2">
                           <button
-                            onClick={() => openPayModal(inv)}
-                            className="h-9 px-3 rounded-lg bg-green-600 text-white text-xs font-semibold hover:bg-green-700 flex items-center gap-2"
+                            className="p-2 rounded-lg hover:bg-slate-100 text-slate-600 hover:text-indigo-600"
+                            title="Download Invoice (next step)"
+                            onClick={() => alert("PDF download next step ✅")}
                           >
-                            <CheckCircle className="w-4 h-4" />
-                            Mark Paid
+                            <Download className="w-4 h-4" />
                           </button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-          </tbody>
-        </table>
+
+                          {!isPaid && (
+                            <button
+                              onClick={() => openPayModal(inv)}
+                              className="h-9 px-3 rounded-lg bg-green-600 text-white text-xs font-semibold hover:bg-green-700 flex items-center gap-2"
+                            >
+                              <CheckCircle className="w-4 h-4" />
+                              Mark Paid
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+            </tbody>
+          </table>
+        </div>
+
+        {/* ✅ Pagination Footer */}
+        <TablePagination
+          page={pagination.page}
+          limit={pagination.limit}
+          total={pagination.total}
+          totalPages={pagination.totalPages}
+          onPageChange={(newPage) => loadInvoices(newPage, pagination.limit)}
+          onLimitChange={(newLimit) => loadInvoices(1, newLimit)}
+        />
       </div>
 
       {/* CREATE INVOICE MODAL */}
@@ -430,13 +474,15 @@ const Invoices = () => {
                 </p>
               </div>
 
-              <button onClick={closeCreate} className="p-2 rounded-lg hover:bg-slate-100">
+              <button
+                onClick={closeCreate}
+                className="p-2 rounded-lg hover:bg-slate-100"
+              >
                 <X className="w-4 h-4 text-slate-600" />
               </button>
             </div>
 
             <div className="p-5 space-y-4">
-              {/* Gym */}
               <div>
                 <label className="block text-xs font-semibold text-slate-600 mb-1">
                   Select Gym
@@ -461,7 +507,6 @@ const Invoices = () => {
                 </select>
               </div>
 
-              {/* Plan */}
               <div>
                 <label className="block text-xs font-semibold text-slate-600 mb-1">
                   Plan (optional)
@@ -486,7 +531,6 @@ const Invoices = () => {
                 </select>
               </div>
 
-              {/* Amount */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-semibold text-slate-600 mb-1">
@@ -520,7 +564,6 @@ const Invoices = () => {
                 </div>
               </div>
 
-              {/* Due Date */}
               <div>
                 <label className="block text-xs font-semibold text-slate-600 mb-1">
                   Due Date (optional)
@@ -535,7 +578,6 @@ const Invoices = () => {
                 />
               </div>
 
-              {/* Notes */}
               <div>
                 <label className="block text-xs font-semibold text-slate-600 mb-1">
                   Notes (optional)

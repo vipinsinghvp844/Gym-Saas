@@ -30,12 +30,12 @@ const BillingRequired = () => {
     try {
       setLoading(true);
 
-      // ✅ who am i
+      // who am i
       const meRes = await api.get("/auth/me.php");
       const meData = meRes.data.data || null;
       setMe(meData);
 
-      // ✅ load latest unpaid invoice (if API exists)
+      // load latest unpaid invoice (if API exists)
       // (अगर अभी ये API नहीं है तो catch में ignore कर देंगे)
       try {
         const invRes = await api.get("/invoices/latest-unpaid.php");
