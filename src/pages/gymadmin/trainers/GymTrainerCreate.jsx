@@ -58,13 +58,17 @@ const GymTrainerCreate = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-6 py-6 space-y-6">
+    <div className="space-y-6 p-5">
 
-      <PageTitle
-        title="Add Trainer"
-        subtitle="Create and manage gym trainer profile"
-      />
-
+        <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold text-slate-900">Add Trainer</h1>
+          <p className="text-sm text-slate-500 mt-1">
+            Create and manage gym trainer profile
+          </p>
+        </div>
+       
+      </div>
       {/* ================= BASIC INFO ================= */}
       <Card title="Basic Information">
         <Grid>

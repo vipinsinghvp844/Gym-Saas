@@ -1,4 +1,4 @@
-import { Plus, Download, Search, Eye, Edit, Ban, Star } from 'lucide-react';
+import { Plus, Download, Search, Eye, Edit, Ban, Star, Stars } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import api from '../../../services/api';
 import { useNavigate } from 'react-router-dom';
@@ -82,9 +82,9 @@ const GymTrainers = () => {
             <Download className="w-4 h-4" />
             Export
           </button>
-          <button 
-          onClick={() => navigate("/gym/trainers/create")}
-          className="h-10 px-4 bg-purple-600 text-white rounded-lg text-sm font-medium hover:bg-purple-700 flex items-center gap-2">
+          <button
+            onClick={() => navigate("/gym/trainers/create")}
+            className="h-10 px-4 bg-purple-600 text-white rounded-lg text-sm font-medium hover:bg-purple-700 flex items-center gap-2">
             <Plus className="w-4 h-4" />
             Add Trainer
           </button>
@@ -113,22 +113,6 @@ const GymTrainers = () => {
         </div>
       </div>
 
-      {/* Info Note */}
-      <div className="bg-purple-50 border border-purple-200 rounded-xl p-4">
-        <div className="flex gap-3">
-          <div className="w-5 h-5 rounded-full bg-purple-600 flex items-center justify-center flex-shrink-0 mt-0.5">
-            <span className="text-white text-xs font-bold">i</span>
-          </div>
-          <div>
-            <p className="text-sm font-semibold text-purple-900">Gym Admin Access</p>
-            <p className="text-sm text-purple-700 mt-1">
-              As a Gym Admin, you can add, edit, and manage all trainers for your gym.
-              Super Admins do not have direct access to trainer management.
-            </p>
-          </div>
-        </div>
-      </div>
-
       {/* Trainers Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
         {loading ? (
@@ -144,33 +128,44 @@ const GymTrainers = () => {
             <div key={trainer.id} className="bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition">
               <div className="p-6">
 
-                <div className="flex items-start gap-3 mb-4">
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-semibold">
-                    {trainer.name
-                      ?.split(" ")
-                      .map(n => n[0])
-                      .join("")
-                      .slice(0, 2)}
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex items-start gap-3">
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-semibold">
+                      {trainer.name
+                        ?.split(" ")
+                        .map(n => n[0])
+                        .join("")
+                        .slice(0, 2)}
+                    </div>
+
+                    <div>
+                      <h3 className="text-base font-semibold text-slate-900">
+                        {trainer.name}
+                      </h3>
+                      <p className="text-xs text-slate-500">{trainer.email}</p>
+                    </div>
                   </div>
 
-                  <div>
-                    <h3 className="text-base font-semibold text-slate-900">
-                      {trainer.name}
-                    </h3>
-                    <p className="text-xs text-slate-500">{trainer.email}</p>
-                  </div>
+                  {/* STATUS BADGE – RIGHT SIDE */}
+                  <span
+                    className={`inline-flex items-center h-fit px-2 py-0.5 rounded-full text-xs font-medium ${trainer.status === "active"
+                        ? "bg-green-100 text-green-700"
+                        : "bg-slate-100 text-slate-600"
+                      }`}
+                  >
+                    {trainer.status}
+                  </span>
                 </div>
 
+                <p className="text-xs text-slate-500 mb-1">Specialty</p>
                 <p className="text-sm text-slate-700 mb-3">
                   {trainer.specialty || "—"}
                 </p>
-
-                <span className={`inline-block px-2 py-0.5 rounded text-xs ${trainer.status === "active"
-                    ? "bg-green-100 text-green-700"
-                    : "bg-slate-100 text-slate-600"
-                  }`}>
-                  {trainer.status}
-                </span>
+                <div className="flex items-center gap-1">
+                  <Stars className="w-4 h-4 fill-amber-400 text-amber-400" />
+                  <span className="text-sm font-semibold text-slate-900">{trainer.rating}</span>
+                  <span className="text-xs text-slate-500 ml-1">rating</span>
+                </div>
 
                 <div className="flex gap-2 mt-4">
                   <button className="flex-1 h-9 bg-purple-600 text-white rounded-lg text-sm">
@@ -196,5 +191,3 @@ const GymTrainers = () => {
 
 
 export default GymTrainers;
-
-//
