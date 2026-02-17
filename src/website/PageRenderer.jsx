@@ -11,6 +11,7 @@ import PublicFooter from "./sections/Footer";
 import Pricing from "./sections/Pricing";
 import Testimonials from "./sections/Testimonials";
 import Gallery from "./sections/Gallery";
+import GymLoader from "../components/ui/GymLoader";
 
 const sectionMap = {
   header: PublicHeader,
@@ -84,8 +85,14 @@ const PageRenderer = () => {
     scrollToRegister();
   };
 
-  if (loading && !page) return <h3>Loading page...</h3>;
-  if (!page) return <h3>Page not found</h3>;
+  if (loading && !page) {
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      <GymLoader label="Loading Website..." />
+    </div>
+  );
+}
+
 
   return (
     <div>

@@ -64,8 +64,10 @@ import GymMemberEditDetail from "./pages/gymadmin/members/GymMemberEditDetail";
 import GymMembershipPlans from "./pages/gymadmin/members/GymMembershipPlans";
 import AddMembershipPlan from "./pages/gymadmin/members/AddMembershipPlan";
 import GymTrainers from "./pages/gymadmin/trainers/GymTrainer";
-import GymStaff from "./pages/gymadmin/members/GymStaff";
-import GymClasses from "./pages/gymadmin/members/GymClasses";
+import GymStaff from "./pages/gymadmin/staff/GymStaff";
+import GymStaffCreate from "./pages/gymadmin/staff/GymStaffCreate";
+import GymClasses from "./pages/gymadmin/Classes/GymClasses";
+import GymClassCreate from "./pages/gymadmin/Classes/GymClassCreate";
 import GymCheckIn from "./pages/gymadmin/members/GymCheckIn";
 import GymSchedules from "./pages/gymadmin/members/GymSchedules";
 import GymAttendance from "./pages/gymadmin/members/GymAteendance";
@@ -178,7 +180,9 @@ function App() {
         <Route path="members" element={<GymMembers />} />
         <Route path="trainers" element={<GymTrainers />} />
         <Route path="staff" element={<GymStaff />} />
+        <Route path="staff/create" element={<GymStaffCreate />} />
         <Route path="classes" element={<GymClasses />} />
+        <Route path="classes/create-class" element={<GymClassCreate />} />
         <Route path="checkin" element={<GymCheckIn />} />
         <Route path="schedules" element={<GymSchedules />} />
         <Route path="reports/attendance" element={<GymAttendance />} />

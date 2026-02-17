@@ -35,13 +35,19 @@ const GymPageRenderer = () => {
     }
   };
 
-  if (error) return <p>{error}</p>;
-  if (!page || !gymInfo) return <p>Loading...</p>;
+  if (loading && !page) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <GymLoader label="Loading Website..." />
+      </div>
+    );
+  }
+
 
   const structure = JSON.parse(page.structure_json || "{}");
   const pageData = JSON.parse(page.page_data_json || "{}");
   console.log(pageData);
-  
+
 
   return (
     <div>

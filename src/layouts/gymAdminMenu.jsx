@@ -47,6 +47,16 @@ const gymAdminMenu = [
       },
     ],
   },
+  {
+    section: "CONTENT MANAGEMENT",
+    items: [
+      {
+        title: "Pages",
+        path: "/gym/pages",
+        icon: Dumbbell,
+      },
+    ],
+  },
 
   {
     section: "GYM MANAGEMENT",
