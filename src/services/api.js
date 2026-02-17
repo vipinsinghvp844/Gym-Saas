@@ -1,8 +1,13 @@
 import axios from "axios";
 
 const api = axios.create({
+<<<<<<< HEAD
   baseURL: "http://localhost:8000",
   // baseURL: "https://vipinparihar-001-site1.mtempurl.com",
+=======
+  // baseURL: "http://localhost/GymsBackend",
+  baseURL: "https://vipinparihar-001-site1.mtempurl.com",
+>>>>>>> 46eb76e99cec71c452ed5399c74450ebd564fe0e
   withCredentials: false, // true tabhi jab cookies use ho
 });
 
