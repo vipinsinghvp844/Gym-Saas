@@ -391,7 +391,7 @@ const CreateTemplate = () => {
       });
 
       // ✅ correct API path
-      await api.post("/templatess/create.php", {
+      await api.post("/templates/create.php", {
         name: name.trim(),
         type,
         structure_json,

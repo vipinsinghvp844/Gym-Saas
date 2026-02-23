@@ -33,7 +33,6 @@ import AuditLogs from "./pages/superadmin/AuditLogs";
    GYM ADMIN PAGES
 ======================= */
 import GymDashboard from "./pages/gymadmin/Dashboard";
-import GymPages from "./pages/gymadmin/pages";
 import EditGymPage from "./pages/gymadmin/pages/EditPage";
 import GymProfile from "../src/pages/gymadmin/settings/Profile";
 
@@ -78,6 +77,8 @@ import GymNotifications from "./pages/gymadmin/members/GymNotifications";
 import GymSettings from "./pages/gymadmin/members/GymSettings";
 import GymRolesPermissions from "./pages/gymadmin/members/GymRolesPermissions";
 import GymTrainerCreate from "./pages/gymadmin/trainers/GymTrainerCreate";
+import CreatePages from "./pages/gymadmin/pages/CreatePages";
+import GymPages from "./pages/gymadmin/pages/Pages";
 
 
 
@@ -174,6 +175,7 @@ function App() {
         }
       >
         <Route path="dashboard" element={<GymDashboard />} />
+        <Route path="pages/create" element={<CreatePages/>} />
         <Route path="pages" element={<GymPages />} />
         <Route path="pages/edit/:id" element={<EditGymPage />} />
         <Route path="setting/profile" element={<GymProfile />} />

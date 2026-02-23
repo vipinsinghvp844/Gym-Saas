@@ -168,6 +168,7 @@ const EditGymPage = () => {
       </div>
     );
   }
+console.log(page);
 
   return (
     <div className="space-y-6 p-5">
@@ -180,7 +181,7 @@ const EditGymPage = () => {
 
         <div className="flex items-center gap-2">
           <button
-            onClick={() => navigate("/superadmin/pages")}
+            onClick={() => navigate("/gym/pages")}
             className="h-10 px-4 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-sm font-medium flex items-center gap-2"
           >
             <ArrowLeft className="w-4 h-4" />
