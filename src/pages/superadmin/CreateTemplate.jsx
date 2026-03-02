@@ -1,4 +1,4 @@
-// CreateTemplate.jsx
+import { useEffect } from "react";
 import { useMemo, useState } from "react";
 import api from "../../services/api";
 import PageHeader from "../../components/ui/PageHeader";
@@ -17,7 +17,7 @@ import TemplatePreviewRenderer from "../../website/TemplatePreviewRenderer";
 /* ===========================
    AVAILABLE SECTIONS CONFIG
 =========================== */
-const availableSections = [
+const availableSectionsPlateform = [
   {
     type: "header",
     label: "Header",
@@ -57,19 +57,19 @@ const availableSections = [
     },
   },
   {
-    type: "testimonials",
-    label: "Testimonials",
-    fields: {
-      heading: "",
-      items: "[]", // JSON array
-    },
-  },
-  {
     type: "gallery",
     label: "Gallery",
     fields: {
       heading: "",
       images: "[]", // JSON array
+    },
+  },
+  {
+    type: "testimonials",
+    label: "Testimonials",
+    fields: {
+      heading: "",
+      items: "[]", // JSON array
     },
   },
   {
@@ -97,11 +97,108 @@ const availableSections = [
     fields: {
       brand: "",
       tagline: "",
-      links: "", // optional: "Features,Pricing,Register"
+      links: "",
       email: "",
     },
   },
 ];
+
+const availableSectionsGym = [
+  {
+    type: "header",
+    label: "GymHeader1",
+    fields: {
+      logo_text: "",
+      menu: "", // optional: "Features,Pricing,Register"
+      button_text: "",
+      button_link: "",
+    },
+  },
+  {
+    type: "hero",
+    label: "GymHero",
+    fields: {
+      title: "",
+      subtitle: "",
+      button_text: "",
+      button_link: "",
+    },
+  },
+  {
+    type: "features",
+    label: "GymFeatures",
+    fields: {
+      heading: "",
+      subheading: "",
+      items: "[]", // JSON array
+    },
+  },
+  {
+    type: "pricing",
+    label: "GymPricing",
+    fields: {
+      heading: "Pricing Plans",
+      subheading: "Choose a plan that fits your gym",
+      plans: "[]", // JSON array
+    },
+  },
+  {
+    type: "gallery",
+    label: "GymGallery",
+    fields: {
+      heading: "",
+      images: "[]", // JSON array
+    },
+  },
+  {
+    type: "testimonials",
+    label: "GymTestimonials",
+    fields: {
+      heading: "",
+      items: "[]", // JSON array
+    },
+  },
+  {
+    type: "cta",
+    label: "GymCTA",
+    fields: {
+      heading: "",
+      subheading: "",
+      button_text: "",
+      button_link: "",
+    },
+  },
+  {
+    type: "register_form",
+    label: "GymRegister Form",
+    fields: {
+      title: "",
+      subtitle: "",
+      submit_text: "Submit Request",
+    },
+  },
+  {
+    type: "contact_location",
+    label: "GymContact & Location",
+    fields: {
+      heading: "",
+      subheading: "",
+      address: "",
+      phone: "",
+      email: "",
+    },
+  },
+  {
+    type: "footer",
+    label: "GymFooter",
+    fields: {
+      brand: "",
+      tagline: "",
+      links: "",
+      email: "",
+    },
+  },
+]
 
 /* ===========================
    HELPERS
@@ -266,13 +363,13 @@ const CreateTemplate = () => {
           Array.isArray(p.features_json)
             ? p.features_json
             : (() => {
-                try {
-                  const parsed = JSON.parse(p.features_json || "[]");
-                  return Array.isArray(parsed) ? parsed : [];
-                } catch {
-                  return [];
-                }
-              })();
+              try {
+                const parsed = JSON.parse(p.features_json || "[]");
+                return Array.isArray(parsed) ? parsed : [];
+              } catch {
+                return [];
+              }
+            })();
 
         return {
           name: p.name,
@@ -426,6 +523,35 @@ const CreateTemplate = () => {
     return obj;
   }, [sections]);
 
+  /* ===========================
+   ACTIVE SECTIONS (TYPE BASED)
+=========================== */
+  const activeSections = useMemo(() => {
+    return type === "gym"
+      ? availableSectionsGym
+      : availableSectionsPlateform
+      ;
+  }, [type]);
+
+  /* ===========================
+     RESET SECTIONS WHEN TYPE CHANGES
+  =========================== */
+  useEffect(() => {
+    setSections([]);
+  }, [type]);
+
+  const handleTypeChange = (newType) => {
+    if (sections.length > 0) {
+      const ok = window.confirm(
+        "Changing template type will remove existing sections. Continue?"
+      );
+      if (!ok) return;
+    }
+
+    setType(newType);
+    setSections([]);
+  };
+
   return (
     <div className="p-5 space-y-6">
       <PageHeader
@@ -464,7 +590,7 @@ const CreateTemplate = () => {
               </label>
               <select
                 value={type}
-                onChange={(e) => setType(e.target.value)}
+                onChange={(e) => handleTypeChange(e.target.value)}
                 className="w-full h-10 px-3 rounded-xl border border-slate-200 text-sm outline-none focus:ring-2 focus:ring-indigo-500"
               >
                 <option value="platform">Platform (Marketing Website)</option>
@@ -484,7 +610,7 @@ const CreateTemplate = () => {
               </div>
 
               <div className="flex flex-wrap gap-2">
-                {availableSections.map((sec) => (
+                {activeSections.map((sec) => (
                   <button
                     key={sec.type}
                     onClick={() => addSection(sec)}
@@ -511,11 +637,10 @@ const CreateTemplate = () => {
             <button
               onClick={save}
               disabled={saving}
-              className={`w-full h-11 rounded-2xl text-sm font-semibold flex items-center justify-center gap-2 ${
-                saving
-                  ? "bg-indigo-300 text-white cursor-not-allowed"
-                  : "bg-indigo-600 text-white hover:bg-indigo-700"
-              }`}
+              className={`w-full h-11 rounded-2xl text-sm font-semibold flex items-center justify-center gap-2 ${saving
+                ? "bg-indigo-300 text-white cursor-not-allowed"
+                : "bg-indigo-600 text-white hover:bg-indigo-700"
+                }`}
             >
               {saving ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -641,11 +766,10 @@ const CreateTemplate = () => {
                                       type="button"
                                       onClick={injectPlatformPlans}
                                       disabled={loadingPlans}
-                                      className={`text-xs font-semibold px-3 py-1.5 rounded-lg border ${
-                                        loadingPlans
-                                          ? "bg-slate-100 text-slate-400 cursor-not-allowed"
-                                          : "bg-white text-indigo-600 border-indigo-200 hover:bg-indigo-50"
-                                      }`}
+                                      className={`text-xs font-semibold px-3 py-1.5 rounded-lg border ${loadingPlans
+                                        ? "bg-slate-100 text-slate-400 cursor-not-allowed"
+                                        : "bg-white text-indigo-600 border-indigo-200 hover:bg-indigo-50"
+                                        }`}
                                     >
                                       {loadingPlans ? "Loading..." : "Use Platform Plans"}
                                     </button>
@@ -656,11 +780,10 @@ const CreateTemplate = () => {
                               <textarea
                                 value={val}
                                 onChange={(e) => updateField(i, field, e.target.value)}
-                                className={`w-full min-h-[170px] px-3 py-2 rounded-xl border font-mono text-sm outline-none focus:ring-2 ${
-                                  valid
-                                    ? "border-slate-200 focus:ring-indigo-500"
-                                    : "border-red-300 focus:ring-red-400"
-                                }`}
+                                className={`w-full min-h-[170px] px-3 py-2 rounded-xl border font-mono text-sm outline-none focus:ring-2 ${valid
+                                  ? "border-slate-200 focus:ring-indigo-500"
+                                  : "border-red-300 focus:ring-red-400"
+                                  }`}
                               />
 
                               {!valid && (
@@ -712,6 +835,7 @@ const CreateTemplate = () => {
                 ) : (
                   <div className="rounded-2xl overflow-hidden border border-slate-200 bg-white">
                     <TemplatePreviewRenderer
+                      type={type}   
                       structure_json={JSON.stringify(previewStructure)}
                       page_data_json={JSON.stringify(previewPageData)}
                     />

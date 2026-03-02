@@ -9,7 +9,6 @@ const GymCTA = ({
   gym,
   previewMode = false,
 }) => {
-console.log("CTA DATA RECEIVED:", data);
   /* =========================
      DEFAULT CONTENT
   ========================= */

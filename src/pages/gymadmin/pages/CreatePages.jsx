@@ -200,6 +200,7 @@ const CreatePages = () => {
 
             <div className="rounded-xl border overflow-hidden bg-white shadow-sm">
               <TemplatePreviewRenderer
+              type={selectedTemplate.type}
                 structure_json={selectedTemplate.structure_json}
                 page_data_json={selectedTemplate.page_data_json}
               />
