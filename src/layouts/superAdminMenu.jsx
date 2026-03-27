@@ -139,7 +139,7 @@ const superAdminMenu = [
     items: [
       {
         title: "Support Tickets",
-        path: "/superadmin/support/tickets",
+        path: "/superadmin/support",
         icon: HelpCircle,
       },
       {

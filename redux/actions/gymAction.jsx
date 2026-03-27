@@ -21,14 +21,21 @@ import {
 export const fetchGyms = (filters = {}) => async (dispatch) => {
   try {
     dispatch(fetchGymsStart());
-     const params = {
+    const params = {
       search: filters.search || "",
       status: filters.status || "all",
       plan: filters.plan || "all",
+      page: filters.page || 1,
+      limit: filters.limit || 10,
     };
-    const res = await api.get("/gyms/list.php",{params});
+    const res = await api.get("/gyms/list.php", { params });
 
-    dispatch(fetchGymsSuccess(res.data.data || []));
+    dispatch(
+  fetchGymsSuccess({
+    data: res.data.data || [],
+    pagination: res.data.pagination || null,
+  })
+);
   } catch (err) {
     dispatch(fetchGymsFail("Failed to load gyms"));
   }
@@ -65,8 +72,8 @@ export const createGym = (form, navigate) => async (dispatch) => {
     dispatch(createStart());
 
     const res = await api.post("/gyms/create.php", form);
-    console.log(res,"resaction");
-    
+    console.log(res, "resaction");
+
 
     if (!res.data.status) {
       toast.error(res.data.message || "Create failed");

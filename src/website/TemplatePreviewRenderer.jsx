@@ -7,6 +7,16 @@ import PublicFooter from "./sections/Footer";
 import Pricing from "./sections/Pricing";
 import Testimonials from "./sections/Testimonials";
 import Gallery from "./sections/Gallery";
+import GymHeader from "./sections/GymHeader";
+import GymHero from "./sections/GymHero";
+import GymFeatures from "./sections/GymFeatures";
+import GymCTA from "./sections/GymCTA";
+import GymPricing from "./sections/GymPricing";
+import GymTestimonials from "./sections/GymTestimonials";
+import GymGallery from "./sections/GymGallery";
+import GymRegistrationForm from "./sections/GymRegistrationForm";
+import GymContactLocation from "./sections/GymContactLocation";
+import GymFooter from "./sections/GymFooter";
 
 // ✅ same map as PageRenderer
 const sectionMap = {
@@ -20,6 +30,18 @@ const sectionMap = {
   register_form: RegisterForm,
   footer: PublicFooter,
 };
+const sectionMap2 = {
+  header: GymHeader,
+  hero: GymHero,
+  features: GymFeatures,
+  cta: GymCTA,
+  pricing: GymPricing,
+  testimonials: GymTestimonials,
+  gallery: GymGallery,
+  register_form: GymRegistrationForm,
+  contact_location: GymContactLocation,
+  footer: GymFooter,
+};
 
 const safeParse = (str) => {
   try {
@@ -29,11 +51,20 @@ const safeParse = (str) => {
   }
 };
 
-const TemplatePreviewRenderer = ({ structure_json, page_data_json }) => {
+const TemplatePreviewRenderer = ({
+  type = "platform",
+  structure_json,
+  page_data_json,
+}) => {
+  
+
   const structure = safeParse(structure_json);
   const pageData = safeParse(page_data_json);
 
   const sections = structure.sections || [];
+
+  const activeSectionMap =
+    type === "gym" ? sectionMap2 : sectionMap;
 
   if (!sections.length) {
     return (
@@ -46,11 +77,17 @@ const TemplatePreviewRenderer = ({ structure_json, page_data_json }) => {
   return (
     <div className="bg-white">
       {sections.map((section, index) => {
-        const Component = sectionMap[section.type];
+
+        const Component =
+          activeSectionMap[section.type];
+
         if (!Component) return null;
 
         const key = section.id || section.type;
-        const data = pageData[key] || pageData[section.type] || {};
+        const data =
+          pageData[key] ||
+          pageData[section.type] ||
+          {};
 
         return (
           <Component

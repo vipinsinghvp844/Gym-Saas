@@ -2,6 +2,12 @@ import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
   list: [],
+  pagination: {
+    page: 1,
+    limit: 10,
+    total: 0,
+    totalPages: 1,
+  },
   stats: {
     total: 0,
     active: 0,
@@ -27,8 +33,10 @@ const gymSlice = createSlice({
     },
     fetchGymsSuccess: (state, { payload }) => {
       state.listLoading = false;
-      state.list = payload;
+      state.list = payload.data || [];
+      state.pagination = payload.pagination || state.pagination;
     },
+
     fetchGymsFail: (state, { payload }) => {
       state.listLoading = false;
       state.error = payload;

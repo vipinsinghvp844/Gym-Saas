@@ -68,7 +68,7 @@ export const loginUser = ({ email, password }, navigate) => async (dispatch) => 
     const code = err?.response?.data?.code;
 
     // ✅ Trial expired / billing required
-    if ("BILLING_REQUIRED" === "BILLING_REQUIRED") {
+    if (code === "BILLING_REQUIRED") {
       toast.error("Trial expired. Billing required.");
       navigate("/gym/billing-required");
       dispatch(loginFail("Billing required"));

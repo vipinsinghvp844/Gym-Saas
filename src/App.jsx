@@ -33,7 +33,6 @@ import AuditLogs from "./pages/superadmin/AuditLogs";
    GYM ADMIN PAGES
 ======================= */
 import GymDashboard from "./pages/gymadmin/Dashboard";
-import GymPages from "./pages/gymadmin/pages";
 import EditGymPage from "./pages/gymadmin/pages/EditPage";
 import GymProfile from "../src/pages/gymadmin/settings/Profile";
 
@@ -55,6 +54,31 @@ import EditTemplate from "./pages/superadmin/EmailTemplates";
 import CreatePlan from "./pages/superadmin/CreatePlan";
 import EditPlan from "./pages/superadmin/EditPlan";
 import BillingRequired from "../src/pages/gymadmin/BillingRequired";
+import CreateEmailTemplate from "./pages/superadmin/CreateEmailTemplate";
+import EditEmailTemplate from "./pages/superadmin/EditEmailTemplate";
+import SupportTicketView from "./pages/superadmin/SupportTicketView";
+import GymMembers from "./pages/gymadmin/members/GymMembers";
+import AddMember from "./pages/gymadmin/members/AddMember";
+import GymMemberEditDetail from "./pages/gymadmin/members/GymMemberEditDetail";
+import GymMembershipPlans from "./pages/gymadmin/members/GymMembershipPlans";
+import AddMembershipPlan from "./pages/gymadmin/members/AddMembershipPlan";
+import GymTrainers from "./pages/gymadmin/trainers/GymTrainer";
+import GymStaff from "./pages/gymadmin/staff/GymStaff";
+import GymStaffCreate from "./pages/gymadmin/staff/GymStaffCreate";
+import GymClasses from "./pages/gymadmin/Classes/GymClasses";
+import GymClassCreate from "./pages/gymadmin/Classes/GymClassCreate";
+import GymCheckIn from "./pages/gymadmin/members/GymCheckIn";
+import GymSchedules from "./pages/gymadmin/members/GymSchedules";
+import GymAttendance from "./pages/gymadmin/members/GymAteendance";
+import GymRevenue from "./pages/gymadmin/members/GymRevenue";
+import GymPerformance from "./pages/gymadmin/members/GymPerformance";
+import GymAnnouncements from "./pages/gymadmin/members/GymAnnouncements";
+import GymNotifications from "./pages/gymadmin/members/GymNotifications";
+import GymSettings from "./pages/gymadmin/members/GymSettings";
+import GymRolesPermissions from "./pages/gymadmin/members/GymRolesPermissions";
+import GymTrainerCreate from "./pages/gymadmin/trainers/GymTrainerCreate";
+import CreatePages from "./pages/gymadmin/pages/CreatePages";
+import GymPages from "./pages/gymadmin/pages/Pages";
 
 
 
@@ -104,7 +128,9 @@ function App() {
         <Route path="templates/edit/:id" element={<EditTemplate />} />
         <Route path="pages" element={<Pages />} />
         <Route path="pages/edit/:id" element={<EditPage />} />
-        <Route path="create-page" element={<CreatePage />} />
+        <Route path="pages/create" element={<CreatePage />} />
+        <Route path="email-templates/create" element={<CreateEmailTemplate />} />
+        <Route path="email-templates/edit/:id" element={<EditEmailTemplate />} />
         <Route path="gym-plans" element={<GymPlans />} />
         <Route path="billing/plans" element={<Plans />} />
         <Route path="billing/plans/create" element={<CreatePlan />} />
@@ -116,7 +142,8 @@ function App() {
         <Route path="analytics/gym-growth" element={<GymGrowth />} />
         <Route path="analytics/usage" element={<UsageReports />} />
         <Route path="email-templates" element={<EmailTemplates />} />
-        <Route path="support/tickets" element={<SupportTickets />} />
+        <Route path="support" element={<SupportTickets />} />
+        <Route path="superadmin/support/:id" element={<SupportTicketView />} />
         <Route path="announcements" element={<Announcements />} />
         <Route path="settings" element={<Settings />} />
         <Route path="audit-logs" element={<AuditLogs />} />
@@ -148,9 +175,34 @@ function App() {
         }
       >
         <Route path="dashboard" element={<GymDashboard />} />
+        <Route path="pages/create" element={<CreatePages/>} />
         <Route path="pages" element={<GymPages />} />
         <Route path="pages/edit/:id" element={<EditGymPage />} />
         <Route path="setting/profile" element={<GymProfile />} />
+        <Route path="members" element={<GymMembers />} />
+        <Route path="trainers" element={<GymTrainers />} />
+        <Route path="staff" element={<GymStaff />} />
+        <Route path="staff/create" element={<GymStaffCreate />} />
+        <Route path="classes" element={<GymClasses />} />
+        <Route path="classes/create-class" element={<GymClassCreate />} />
+        <Route path="checkin" element={<GymCheckIn />} />
+        <Route path="schedules" element={<GymSchedules />} />
+        <Route path="reports/attendance" element={<GymAttendance />} />
+        <Route path="members" element={<GymMembers />} />
+        <Route path="reports/revenue" element={<GymRevenue />} />
+        <Route path="reports/performance" element={<GymPerformance />} />
+        <Route path="announcements" element={<GymAnnouncements />} />
+        <Route path="notifications" element={<GymNotifications />} />
+        <Route path="settings" element={<GymSettings />} />
+        <Route path="members/create" element={<AddMember />} />
+        <Route path="members/add" element={<AddMember />} />
+        <Route path="members/:id/edit" element={<GymMemberEditDetail />} />
+        <Route path="trainers/create" element={<GymTrainerCreate />} />
+        <Route path="membership-plans" element={<GymMembershipPlans />} />
+        <Route path="membership-plans/add" element={<AddMembershipPlan />} />
+        <Route path="roles" element={<GymRolesPermissions />} />
+        <Route path="membership-plans/edit/:id" element={<GymMembershipPlans />} />
+        {/* <Route path="members/edit/:id" element={<EditMember />} /> */}
 
       </Route>
 

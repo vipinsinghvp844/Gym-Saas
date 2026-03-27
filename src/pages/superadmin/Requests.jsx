@@ -8,35 +8,89 @@ import {
   Clock,
   ShieldCheck,
   Ban,
+  Search,
 } from "lucide-react";
+import TablePagination from "../../components/ui/TablePagination";
 
 const Requests = () => {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(false);
-
   const [processingId, setProcessingId] = useState(null);
+
+  // ✅ Filters
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+
+  // ✅ Pagination
+  const [pagination, setPagination] = useState({
+    page: 1,
+    limit: 10,
+    total: 0,
+    totalPages: 1,
+  });
 
   // View modal
   const [selected, setSelected] = useState(null);
 
+  // ✅ First Load
   useEffect(() => {
-    loadRequests();
+    loadRequests(1, pagination.limit);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const loadRequests = async () => {
+  // ✅ Debounced Search/Filter
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      loadRequests(1, pagination.limit); // ✅ reset page = 1 on filter change
+    }, 600);
+
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchTerm, statusFilter]);
+
+  const loadRequests = async (page = 1, limit = 10) => {
     try {
       setLoading(true);
-      const res = await api.get("/gyms/requests.php");
+
+      const params = {
+        page,
+        limit,
+      };
+
+      if (statusFilter !== "all") params.status = statusFilter;
+      if (searchTerm.trim() !== "") params.search = searchTerm.trim();
+
+      // ✅ IMPORTANT: params pass karna hai
+      const res = await api.get("/gyms/requests.php", { params });
+
       setRequests(res.data.data || []);
+
+      // ✅ IMPORTANT: pagination state update
+      setPagination(
+        res.data.pagination || {
+          page,
+          limit,
+          total: 0,
+          totalPages: 1,
+        }
+      );
     } catch (err) {
       console.error("Failed to load requests", err);
-      alert("Unauthorized or server error");
+      alert(err?.response?.data?.message || "Unauthorized or server error");
+
+      setRequests([]);
+      setPagination({
+        page: 1,
+        limit: 10,
+        total: 0,
+        totalPages: 1,
+      });
     } finally {
       setLoading(false);
     }
   };
 
-  // ✅ stats calculated from data (no extra API required)
+  // ✅ Stats (only current page)
   const stats = useMemo(() => {
     const today = new Date().toISOString().slice(0, 10);
 
@@ -72,7 +126,10 @@ const Requests = () => {
       }
 
       await api.post("/gyms/approve-request.php", payload);
-      await loadRequests();
+
+      // ✅ refresh current page after action
+      await loadRequests(pagination.page, pagination.limit);
+
       setSelected(null);
     } catch (err) {
       console.error("Request action failed", err);
@@ -149,7 +206,7 @@ const Requests = () => {
         </p>
       </div>
 
-      {/* Stats */}
+      {/* ✅ Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
           <p className="text-sm text-slate-600 mb-1">Pending Requests</p>
@@ -164,6 +221,33 @@ const Requests = () => {
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
           <p className="text-sm text-slate-600 mb-1">Rejected Today</p>
           <p className="text-2xl font-semibold text-slate-900">{stats.rejectedToday}</p>
+        </div>
+      </div>
+
+      {/* ✅ Filters (same style like Gyms.jsx) */}
+      <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
+        <div className="flex flex-col lg:flex-row gap-3">
+          <div className="flex-1 relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <input
+              type="text"
+              placeholder="Search by gym, owner, email, invoice..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full h-10 pl-10 pr-4 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+            />
+          </div>
+
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="h-10 px-3 pr-10 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 min-w-[160px]"
+          >
+            <option value="all">All Status</option>
+            <option value="pending">Pending</option>
+            <option value="approved">Approved</option>
+            <option value="rejected">Rejected</option>
+          </select>
         </div>
       </div>
 
@@ -220,17 +304,17 @@ const Requests = () => {
 
                   return (
                     <tr key={request.id} className="hover:bg-slate-50">
-                      {/* Gym */}
                       <td className="px-6 py-4">
                         <p className="text-sm font-semibold text-slate-900">
                           {request.gym_name}
                         </p>
                         {request.gym_id ? (
-                          <p className="text-xs text-slate-500">Gym ID: {request.gym_id}</p>
+                          <p className="text-xs text-slate-500">
+                            Gym ID: {request.gym_id}
+                          </p>
                         ) : null}
                       </td>
 
-                      {/* Owner */}
                       <td className="px-6 py-4">
                         <p className="text-sm font-medium text-slate-900">
                           {request.owner_name}
@@ -238,7 +322,6 @@ const Requests = () => {
                         <p className="text-xs text-slate-500">{request.owner_email}</p>
                       </td>
 
-                      {/* Plan/Payment */}
                       <td className="px-6 py-4">
                         <div className="flex flex-col gap-1">
                           <span className="inline-flex w-fit px-2.5 py-0.5 rounded-full text-xs font-semibold bg-purple-100 text-purple-700">
@@ -254,17 +337,12 @@ const Requests = () => {
                         </div>
                       </td>
 
-                      {/* Date */}
                       <td className="px-6 py-4">
-                        <p className="text-sm text-slate-600">
-                          {request.created_at || "-"}
-                        </p>
+                        <p className="text-sm text-slate-600">{request.created_at || "-"}</p>
                       </td>
 
-                      {/* Status */}
                       <td className="px-6 py-4">{getStatusBadge(request.status)}</td>
 
-                      {/* Actions */}
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-2">
                           <button
@@ -310,107 +388,17 @@ const Requests = () => {
             </tbody>
           </table>
         </div>
+
+        {/* ✅ Pagination Footer */}
+        <TablePagination
+          page={pagination.page}
+          limit={pagination.limit}
+          total={pagination.total}
+          totalPages={pagination.totalPages}
+          onPageChange={(newPage) => loadRequests(newPage, pagination.limit)}
+          onLimitChange={(newLimit) => loadRequests(1, newLimit)}
+        />
       </div>
-
-      {/* ✅ View Modal */}
-      {selected && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-4">
-          <div className="bg-white rounded-2xl w-full max-w-2xl shadow-xl border border-slate-200">
-            <div className="p-5 border-b border-slate-200 flex items-start justify-between">
-              <div>
-                <h2 className="text-lg font-semibold text-slate-900">Request Details</h2>
-                <p className="text-sm text-slate-500">
-                  Review full details before approval
-                </p>
-              </div>
-              <button
-                onClick={() => setSelected(null)}
-                className="px-3 py-1.5 rounded-lg text-sm bg-slate-100 hover:bg-slate-200"
-              >
-                Close
-              </button>
-            </div>
-
-            <div className="p-5 space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
-                  <p className="text-xs text-slate-500">Gym Name</p>
-                  <p className="text-sm font-semibold text-slate-900">{selected.gym_name}</p>
-                </div>
-
-                <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
-                  <p className="text-xs text-slate-500">Status</p>
-                  <div className="mt-1">{getStatusBadge(selected.status)}</div>
-                </div>
-
-                <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
-                  <p className="text-xs text-slate-500">Owner Name</p>
-                  <p className="text-sm font-semibold text-slate-900">{selected.owner_name}</p>
-                </div>
-
-                <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
-                  <p className="text-xs text-slate-500">Owner Email</p>
-                  <p className="text-sm font-semibold text-slate-900">{selected.owner_email}</p>
-                </div>
-
-                <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
-                  <p className="text-xs text-slate-500">Plan</p>
-                  <p className="text-sm font-semibold text-slate-900">
-                    {selected.plan_name || "N/A"}
-                  </p>
-                  <p className="text-xs text-slate-500 mt-1">
-                    ₹{selected.amount || 0} • {getPaymentBadge(selected.payment_status)}
-                  </p>
-                </div>
-
-                <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
-                  <p className="text-xs text-slate-500">Requested At</p>
-                  <p className="text-sm font-semibold text-slate-900">
-                    {selected.created_at || "-"}
-                  </p>
-                </div>
-
-                {/* ✅ Reject reason uses DB column "reason" */}
-                {selected.reason ? (
-                  <div className="sm:col-span-2 bg-red-50 rounded-xl p-4 border border-red-200">
-                    <p className="text-xs text-red-600">Rejection Reason</p>
-                    <p className="text-sm font-semibold text-red-700">
-                      {selected.reason}
-                    </p>
-                  </div>
-                ) : null}
-              </div>
-
-              {/* Approve/Reject from modal too */}
-              <div className="flex items-center justify-end gap-2 pt-2">
-                <button
-                  onClick={() => setSelected(null)}
-                  className="h-9 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-sm font-medium"
-                >
-                  Cancel
-                </button>
-
-                {(selected.status || "pending").toLowerCase() === "pending" && (
-                  <>
-                    <button
-                      onClick={() => handleAction(selected.id, "rejected")}
-                      className="h-9 px-4 rounded-xl bg-red-600 hover:bg-red-700 text-white text-sm font-medium"
-                    >
-                      Reject
-                    </button>
-                    <button
-                      onClick={() => handleAction(selected.id, "approved")}
-                      className="h-9 px-4 rounded-xl bg-green-600 hover:bg-green-700 text-white text-sm font-medium"
-                    >
-                      Approve
-                    </button>
-                  </>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
